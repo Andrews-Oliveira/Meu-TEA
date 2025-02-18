@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.R
-import com.example.meutea.ui.theme.MeuTEATheme
 
 //@OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,41 +90,32 @@ fun WelcomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    onClick = {
-                        navController.navigate("LoginScreen")
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF009CE5)
-                    )
-                ) {
-                    Text(
-                        text = "Pular",
-                        fontSize = 20.sp,
-                        color = Color.White
-                    )
-                }
-
-                Button(
-                    onClick = {
-                        navController.navigate("welcomeScreen2")
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp),
+                    onClick = { navController.navigate("LoginScreen") },
+                    modifier = Modifier.width(120.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF0ABBDE)
                     )
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_back_foreground),
-                        contentDescription = "Próximo",
-                        modifier = Modifier.size(24.dp)
+                    Text(
+                        text = "Pular",
+                        fontSize = 18.sp, // Ajustado para melhor visualização
+                        color = Color.White
                     )
+                }
+
+                Button(
+                    onClick = { navController.navigate("welcomeScreen2") },
+                    modifier = Modifier.width(120.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF0ABBDE)
+                    )
+                ) {
+                    Text(
+                        text = "Próximo",
+                        fontSize = 18.sp,
+                        color = Color.White)
                 }
             }
         }
