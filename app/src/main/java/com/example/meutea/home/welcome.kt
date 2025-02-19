@@ -10,8 +10,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,14 +30,24 @@ fun WelcomeScreen(
     navController: NavController
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0ABBDE), Color.White)
-                )
-            )
+        modifier = Modifier.fillMaxSize()
     ) {
+        Image(
+            painter = painterResource(id = R.drawable.img_background),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(20.dp),
+            contentScale = ContentScale.Crop
+        )
+
+        // Overlay escuro para reduzir a claridade
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -45,6 +57,7 @@ fun WelcomeScreen(
             Spacer(modifier = Modifier.weight(0.5f))
 
             Text(
+                color = Color.White,
                 text = "Bem-vindo ao",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -52,6 +65,7 @@ fun WelcomeScreen(
                 modifier = Modifier.fillMaxWidth()
             )
             Text(
+                color = Color.White,
                 text = "Meu TEA",
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
@@ -72,11 +86,12 @@ fun WelcomeScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
+
                 text = "Um aplicativo de comunicação alternativa para ajudar crianças e adolescentes com autismo a expressarem seus desejos, emoções e necessidades de forma simples e eficaz.",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
-                color = Color.Black,
+                color = Color.White,
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
             )
@@ -94,7 +109,7 @@ fun WelcomeScreen(
                     modifier = Modifier.width(120.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0ABBDE)
+                        containerColor = Color(0xABFFEB3B)
                     )
                 ) {
                     Text(
@@ -109,7 +124,7 @@ fun WelcomeScreen(
                     modifier = Modifier.width(120.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0ABBDE)
+                        containerColor = Color(0xC60ABBDE)
                     )
                 ) {
                     Text(

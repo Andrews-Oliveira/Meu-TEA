@@ -9,8 +9,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -27,14 +29,23 @@ fun WelcomeScreen2(
     navController: NavController
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0ABBDE), Color.White)
-                )
-            )
+        modifier = Modifier.fillMaxSize()
     ) {
+        Image(
+            painter = painterResource(id = R.drawable.img_background),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(20.dp),
+            contentScale = ContentScale.Crop
+        )
+
+        // Overlay escuro para reduzir a claridade
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -54,7 +65,7 @@ fun WelcomeScreen2(
                 fontSize = 20.sp, // Reduzi um pouco para melhor ajuste
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                color = Color(0xCC000000),
+                color = Color(0xCCFFFFFF),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 32.dp, vertical = 16.dp)
@@ -69,13 +80,13 @@ fun WelcomeScreen2(
                     .padding(top = 10.dp)
             )
 
-            Spacer(modifier = Modifier.weight(1f)) // Empurra os botões para cima
+            Spacer(modifier = Modifier.height(176.dp)) // Empurra os botões para cima
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp), // Padding ajustado para visibilidade
-                horizontalArrangement = Arrangement.SpaceEvenly // Melhor espaçamento
+                    .padding(bottom = 24.dp), // Padding ajustado para visibilidade
+                horizontalArrangement = Arrangement.SpaceBetween // Melhor espaçamento
             ) {
                 Button(
                     onClick = { navController.navigate("welcomeScreen") },

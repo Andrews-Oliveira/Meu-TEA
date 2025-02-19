@@ -1,5 +1,6 @@
 package com.example.meutea.LoginCadastrar
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -7,13 +8,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -24,15 +27,18 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     navController: NavController,
     onBackClicked: () -> Unit,
-    onContinuarClicked: (String, String) -> Unit,
+    onContinuarClicked: (String, String, Boolean) -> Unit,
     onCadastrarClicked: () -> Unit
 ) {
-    val email = remember { mutableStateOf("") }
-    val senha = remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val email = rememberSaveable { mutableStateOf("") }
+    val senha = rememberSaveable { mutableStateOf("") }
+    val lembrarMe = rememberSaveable { mutableStateOf(false) }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -46,7 +52,6 @@ fun LoginScreen(
             contentScale = ContentScale.Crop
         )
 
-        // Overlay escuro para reduzir a claridade
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -88,8 +93,16 @@ fun LoginScreen(
             OutlinedTextField(
                 value = email.value,
                 onValueChange = { email.value = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Email", color = Color.White) },
+                textStyle = TextStyle(color = Color.White), // Define a cor do texto aqui!
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.LightGray,
+                    cursorColor = Color.White,
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.LightGray
+                )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -97,19 +110,55 @@ fun LoginScreen(
             OutlinedTextField(
                 value = senha.value,
                 onValueChange = { senha.value = it },
-                label = { Text("Senha") },
+                label = { Text("Senha", color = Color.White) },
+                textStyle = TextStyle(color = Color.White), // Define a cor do texto aqui!
                 visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.LightGray,
+                    cursorColor = Color.White,
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.LightGray
+                )
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Checkbox "Permanecer logado"
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Checkbox(
+                    checked = lembrarMe.value,
+                    onCheckedChange = { lembrarMe.value = it },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = Color(0xFFFFEB3B),
+                        uncheckedColor = Color.LightGray
+                    )
+                )
+                Text(
+                    text = "Permanecer logado",
+                    color = Color.White,
+                    fontSize = 16.sp
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { onContinuarClicked(email.value, senha.value) },
+                onClick = {
+                    if (email.value.isNotEmpty() && senha.value.isNotEmpty()) {
+                        onContinuarClicked(email.value, senha.value, lembrarMe.value)
+                    } else {
+                        Toast.makeText(context, "Preencha todos os campos!", Toast.LENGTH_SHORT).show()
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xABFFEB3B))
             ) {
-                Text("LOGIN")
+                Text("LOGIN", color = Color.Black)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -130,7 +179,7 @@ fun LoginScreenPreview() {
     LoginScreen(
         navController = navController,
         onBackClicked = {},
-        onContinuarClicked = { _, _ -> },
+        onContinuarClicked = { _, _, _ -> },
         onCadastrarClicked = {}
     )
 }
