@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
 
                     // Tela Carteirinha
                     composable(route = "CarteirinhaScreen") {
-                        CarteirinhaScreen(navController = navController) // Adicione a rota para CarteirinhaScreen
+                        CarteirinhaScreen() // Adicione a rota para CarteirinhaScreen
                     }
                 }
             }

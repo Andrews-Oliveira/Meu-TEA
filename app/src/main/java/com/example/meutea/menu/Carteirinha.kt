@@ -14,12 +14,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.meutea.R
 
 @Composable
-fun CarteirinhaScreen(navController: NavController) {
+fun CarteirinhaScreen() {
     var nome by remember { mutableStateOf("") }
     var cpf by remember { mutableStateOf("") }
     var rg by remember { mutableStateOf("") }
@@ -155,6 +153,6 @@ fun EditableTextFieldRow(label: String, value: String, onValueChange: (String) -
 @Preview(showBackground = true)
 @Composable
 fun CarteirinhaScreenPreview() {
-    val navController = rememberNavController()
-    CarteirinhaScreen(navController = navController)
+    rememberNavController()
+    CarteirinhaScreen()
 }
