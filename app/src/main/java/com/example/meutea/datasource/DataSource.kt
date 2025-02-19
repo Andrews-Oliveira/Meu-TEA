@@ -18,7 +18,6 @@ class DataSource {
         return result.user
     }
 
-    // Método para login
     suspend fun signIn(email: String, senha: String): FirebaseUser? {
         val result = auth.signInWithEmailAndPassword(email, senha).await()
         return result.user
