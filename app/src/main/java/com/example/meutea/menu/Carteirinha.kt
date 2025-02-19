@@ -37,7 +37,8 @@ fun CarteirinhaScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF0072CE))
-    ) {
+    )
+    {
         Column(
             modifier = Modifier
                 .fillMaxSize()
