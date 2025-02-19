@@ -6,6 +6,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -44,28 +45,35 @@ fun CadastrarScreen(
     val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
+        // Imagem de fundo com o efeito de blur
         Image(
             painter = painterResource(id = R.drawable.img_background),
             contentDescription = null,
-            modifier = Modifier.fillMaxSize().blur(20.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(20.dp),  // Aplica o efeito de borrado
             contentScale = ContentScale.Crop
         )
 
+        // Camada escura com fundo borrado
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
+                .background(Color.Black.copy(alpha = 0.5f)) // Camada preta com opacidade para dar o efeito escuro
         )
 
+        // Conteúdo da tela
         Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Botão "Voltar" mais compacto
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 16.dp),
+                    .padding(top = 32.dp, bottom = 16.dp), // Aumenta o espaço do topo
                 contentAlignment = Alignment.CenterStart
             ) {
                 Button(
@@ -81,35 +89,46 @@ fun CadastrarScreen(
                 }
             }
 
+            // Logo do app
             Image(
                 painter = painterResource(id = R.mipmap.ic_meutea),
                 contentDescription = "Logo MeuTEA",
-                modifier = Modifier.size(240.dp, 230.dp).padding(top = 16.dp)
+                modifier = Modifier
+                    .size(240.dp, 230.dp)
+                    .padding(top = 16.dp)
             )
 
+            // Título
             Text(
                 text = "Boas vindas!",
                 fontSize = 30.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xE6FFFFFF),
+                color = Color.White,
                 modifier = Modifier.padding(top = 16.dp)
             )
 
+            // Texto descritivo
             Text(
                 text = "Faça o seu cadastro para acessar o aplicativo",
                 fontSize = 18.sp,
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 50.dp, vertical = 16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 50.dp, vertical = 16.dp)
             )
 
+            // Campos de texto
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 50.dp, vertical = 16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 50.dp, vertical = 16.dp)
             ) {
+                // Campo Nome
                 OutlinedTextField(
                     value = nome.value,
                     onValueChange = { nome.value = it },
-                    label = { Text("Nome") },
+                    label = { Text("Nome", color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = Color.White,
@@ -124,10 +143,11 @@ fun CadastrarScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Campo Email
                 OutlinedTextField(
                     value = email.value,
                     onValueChange = { email.value = it },
-                    label = { Text("Email") },
+                    label = { Text("Email", color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = Color.White,
@@ -142,10 +162,11 @@ fun CadastrarScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Campo Senha
                 OutlinedTextField(
                     value = senha.value,
                     onValueChange = { senha.value = it },
-                    label = { Text("Senha") },
+                    label = { Text("Senha", color = Color.White) },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -161,6 +182,7 @@ fun CadastrarScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Botão de Cadastro
                 Button(
                     onClick = {
                         if (nome.value.isEmpty() || email.value.isEmpty() || senha.value.isEmpty()) {
@@ -183,10 +205,13 @@ fun CadastrarScreen(
                             }
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xABFFEB3B))
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xABFFEB3B)),
+                    shape = RoundedCornerShape(12.dp) // Bordas arredondadas
                 ) {
-                    Text("CRIAR")
+                    Text("CRIAR", fontSize = 18.sp, color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -194,7 +219,6 @@ fun CadastrarScreen(
         }
     }
 }
-
 @Preview(showBackground = true)
 @Composable
 fun CadastrarScreenPreview() {

@@ -11,8 +11,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.LoginCadastrar.CadastrarScreen
 import com.example.meutea.LoginCadastrar.LoginScreen
-import com.example.meutea.home.WelcomeScreen
-import com.example.meutea.home.WelcomeScreen2
+import com.example.meutea.menu.MenuPrincipalScreen
+import com.example.meutea.menu.CarteirinhaScreen // Importe a tela CarteirinhaScreen
+import com.example.meutea.welcome.WelcomeScreen
+import com.example.meutea.welcome.WelcomeScreen2
 import com.example.meutea.ui.theme.MeuTEATheme
 
 class MainActivity : ComponentActivity() {
@@ -63,6 +65,16 @@ class MainActivity : ComponentActivity() {
                                 println("Usuário cadastrado: $nome, $email")
                             }
                         )
+                    }
+
+                    // Tela Menu Principal
+                    composable(route = "MenuPrincipalScreen") {
+                        MenuPrincipalScreen(navController = navController) // Tela já existente
+                    }
+
+                    // Tela Carteirinha
+                    composable(route = "CarteirinhaScreen") {
+                        CarteirinhaScreen() // Adicione a rota para CarteirinhaScreen
                     }
                 }
             }

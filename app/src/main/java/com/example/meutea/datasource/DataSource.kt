@@ -1,5 +1,3 @@
-package com.example.meutea.datasource
-
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.tasks.await
@@ -17,6 +15,11 @@ class DataSource {
                     .build()
             ).await()
         }
+        return result.user
+    }
+
+    suspend fun signIn(email: String, senha: String): FirebaseUser? {
+        val result = auth.signInWithEmailAndPassword(email, senha).await()
         return result.user
     }
 }

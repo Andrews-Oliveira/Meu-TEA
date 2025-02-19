@@ -1,17 +1,15 @@
-package com.example.meutea.home
+package com.example.meutea.welcome
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-//import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -24,14 +22,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.R
 
-//@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WelcomeScreen(
+fun WelcomeScreen2(
     navController: NavController
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
+        // Fundo borrado
         Image(
             painter = painterResource(id = R.drawable.img_background),
             contentDescription = null,
@@ -41,7 +39,7 @@ fun WelcomeScreen(
             contentScale = ContentScale.Crop
         )
 
-        // Overlay escuro para reduzir a claridade
+        // Overlay escuro para melhorar contraste
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -51,53 +49,44 @@ fun WelcomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.weight(0.5f))
-
-            Text(
-                color = Color.White,
-                text = "Bem-vindo ao",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Text(
-                color = Color.White,
-                text = "Meu TEA",
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
+            // Logo
             Image(
-                painter = painterResource(id = R.mipmap.ic_background_meutea_foreground),
+                painter = painterResource(id = R.mipmap.ic_meutea_24_foreground),
                 contentDescription = "Logo MeuTEA",
                 modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .aspectRatio(1f)
+                    .size(200.dp)
+                    .padding(top = 16.dp)
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
-
+            // Texto de boas-vindas
             Text(
-
-                text = "Um aplicativo de comunicação alternativa para ajudar crianças e adolescentes com autismo a expressarem seus desejos, emoções e necessidades de forma simples e eficaz.",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
+                text = "Divirta-se enquanto aprende a se comunicar através de imagens e exercícios sociais.\n\nJunte-se a nós para crescer e aprender!",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                color = Color.White,
+                color = Color(0xCCFFFFFF),
                 modifier = Modifier
-                    .fillMaxWidth(0.9f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp, vertical = 16.dp)
             )
 
+            // Imagem ilustrativa
+            Image(
+                painter = painterResource(id = R.mipmap.ic_imagetea_foreground),
+                contentDescription = "Imagem MeuTEA",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+                    .padding(top = 10.dp)
+            )
+
+            // Adiciona espaço dinâmico para empurrar os botões para baixo
             Spacer(modifier = Modifier.weight(1f))
 
+            // Botões
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -105,22 +94,7 @@ fun WelcomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    onClick = { navController.navigate("LoginScreen") },
-                    modifier = Modifier.width(120.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xABFFEB3B)
-                    )
-                ) {
-                    Text(
-                        text = "Pular",
-                        fontSize = 18.sp, // Ajustado para melhor visualização
-                        color = Color.White
-                    )
-                }
-
-                Button(
-                    onClick = { navController.navigate("welcomeScreen2") },
+                    onClick = { navController.navigate("welcomeScreen") },
                     modifier = Modifier.width(120.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
@@ -128,9 +102,25 @@ fun WelcomeScreen(
                     )
                 ) {
                     Text(
+                        text = "Voltar",
+                        fontSize = 18.sp,
+                        color = Color.White
+                    )
+                }
+
+                Button(
+                    onClick = { navController.navigate("loginScreen") },
+                    modifier = Modifier.width(120.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = Color(0xABFFEB3B)
+                    )
+                ) {
+                    Text(
                         text = "Próximo",
                         fontSize = 18.sp,
-                        color = Color.White)
+                        color = Color.White
+                    )
                 }
             }
         }
@@ -139,7 +129,7 @@ fun WelcomeScreen(
 
 @Preview(showBackground = true)
 @Composable
-private fun WelcomeScreenPreview() {
-   val navController = rememberNavController()
-    WelcomeScreen(navController)
+private fun TaskListPreview() {
+    val navController = rememberNavController()
+    WelcomeScreen2(navController)
 }

@@ -1,5 +1,7 @@
 package com.example.meutea.LoginCadastrar
 
+import DataSource
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.R
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +42,8 @@ fun LoginScreen(
     val email = rememberSaveable { mutableStateOf("") }
     val senha = rememberSaveable { mutableStateOf("") }
     val lembrarMe = rememberSaveable { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -94,7 +99,7 @@ fun LoginScreen(
                 value = email.value,
                 onValueChange = { email.value = it },
                 label = { Text("Email", color = Color.White) },
-                textStyle = TextStyle(color = Color.White), // Define a cor do texto aqui!
+                textStyle = TextStyle(color = Color.White),
                 modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = Color.White,
@@ -111,7 +116,7 @@ fun LoginScreen(
                 value = senha.value,
                 onValueChange = { senha.value = it },
                 label = { Text("Senha", color = Color.White) },
-                textStyle = TextStyle(color = Color.White), // Define a cor do texto aqui!
+                textStyle = TextStyle(color = Color.White),
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -125,7 +130,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Checkbox "Permanecer logado"
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -147,10 +151,19 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Botão de login
             Button(
                 onClick = {
                     if (email.value.isNotEmpty() && senha.value.isNotEmpty()) {
-                        onContinuarClicked(email.value, senha.value, lembrarMe.value)
+                        // Chama a função de login dentro da coroutine
+                        coroutineScope.launch {
+                            LoginWithFirebase(
+                                email = email.value,
+                                senha = senha.value,
+                                navController = navController,
+                                context = context
+                            )
+                        }
                     } else {
                         Toast.makeText(context, "Preencha todos os campos!", Toast.LENGTH_SHORT).show()
                     }
@@ -158,17 +171,38 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xABFFEB3B))
             ) {
-                Text("LOGIN", color = Color.Black)
+                Text("LOGIN", color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            TextButton(
-                onClick = { onCadastrarClicked() }
+            // Botão de cadastro
+            Button(
+                onClick = {
+                    onCadastrarClicked() // Chama a função passada por parâmetro
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
             ) {
-                Text("Criar uma conta", color = Color.White, fontSize = 16.sp)
+                Text("CRIAR CONTA", color = Color.White)
             }
         }
+    }
+}
+
+// Função de login, agora sem @Composable
+suspend fun LoginWithFirebase(email: String, senha: String, navController: NavController, context: Context) {
+    try {
+        val dataSource = DataSource()
+        val user = dataSource.signIn(email, senha)
+        if (user != null) {
+            navController.navigate("MenuPrincipalScreen")
+        } else {
+            Toast.makeText(context, "Email ou senha inválidos!", Toast.LENGTH_SHORT).show()
+        }
+    } catch (e: Exception) {
+        Toast.makeText(context, "Erro ao fazer login: ${e.message}", Toast.LENGTH_SHORT).show()
+        e.printStackTrace()  // Isso ajudará a identificar o erro no log
     }
 }
 

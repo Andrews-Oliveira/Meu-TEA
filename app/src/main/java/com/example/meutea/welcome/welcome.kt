@@ -1,16 +1,16 @@
-package com.example.meutea.home
+package com.example.meutea.welcome
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+//import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -22,10 +22,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.R
-import com.example.meutea.ui.theme.MeuTEATheme
 
+//@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WelcomeScreen2(
+fun WelcomeScreen(
     navController: NavController
 ) {
     Box(
@@ -46,86 +46,99 @@ fun WelcomeScreen2(
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.5f))
         )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = R.mipmap.ic_meutea_24_foreground),
-                contentDescription = "Logo MeuTEA",
-                modifier = Modifier
-                    .size(200.dp) // Diminuído para mais espaço
-                    .padding(top = 16.dp)
-            )
+            Spacer(modifier = Modifier.weight(0.5f))
 
             Text(
-                text = "Divirta-se enquanto aprende a se comunicar através de imagens e exercícios sociais.\n\nJunte-se a nós para crescer e aprender!",
-                fontSize = 20.sp, // Reduzi um pouco para melhor ajuste
+                color = Color.White,
+                text = "Bem-vindo ao",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                color = Color.White,
+                text = "Meu TEA",
+                fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                color = Color(0xCCFFFFFF),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 16.dp)
+                modifier = Modifier.fillMaxWidth()
             )
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             Image(
-                painter = painterResource(id = R.mipmap.ic_imagetea_foreground),
-                contentDescription = "Imagem MeuTEA",
+                painter = painterResource(id = R.mipmap.ic_background_meutea_foreground),
+                contentDescription = "Logo MeuTEA",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp) // Reduzi a altura para abrir espaço
-                    .padding(top = 10.dp)
+                    .fillMaxWidth(0.8f)
+                    .aspectRatio(1f)
             )
 
-            Spacer(modifier = Modifier.height(176.dp)) // Empurra os botões para cima
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+
+                text = "Um aplicativo de comunicação alternativa para ajudar crianças e adolescentes com autismo a expressarem seus desejos, emoções e necessidades de forma simples e eficaz.",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                color = Color.White,
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 24.dp), // Padding ajustado para visibilidade
-                horizontalArrangement = Arrangement.SpaceBetween // Melhor espaçamento
+                    .padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    onClick = { navController.navigate("welcomeScreen") },
+                    onClick = { navController.navigate("LoginScreen") },
                     modifier = Modifier.width(120.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0ABBDE)
+                        containerColor = Color(0xABFFEB3B)
                     )
                 ) {
                     Text(
-                        text = "Voltar",
+                        text = "Pular",
                         fontSize = 18.sp, // Ajustado para melhor visualização
                         color = Color.White
                     )
                 }
 
                 Button(
-                    onClick = { navController.navigate("loginScreen") },
+                    onClick = { navController.navigate("welcomeScreen2") },
                     modifier = Modifier.width(120.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0ABBDE)
+                        containerColor = Color(0xC60ABBDE)
                     )
                 ) {
                     Text(
                         text = "Próximo",
                         fontSize = 18.sp,
-                        color = Color.White
-                    )
+                        color = Color.White)
                 }
             }
         }
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
-private fun TaskListPreview() {
-    val navController = rememberNavController()
-    WelcomeScreen2(navController)
+private fun WelcomeScreenPreview() {
+   val navController = rememberNavController()
+    WelcomeScreen(navController)
 }
