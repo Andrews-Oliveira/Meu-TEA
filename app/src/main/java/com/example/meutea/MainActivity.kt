@@ -11,21 +11,22 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.LoginCadastrar.CadastrarScreen
 import com.example.meutea.LoginCadastrar.LoginScreen
-import com.example.meutea.home.WelcomeScreen
-import com.example.meutea.home.WelcomeScreen2
-import com.example.meutea.LoginCadastrar.LoginScreen // Importe a tela de login
+import com.example.meutea.menu.MenuPrincipalScreen
+import com.example.meutea.menu.CarteirinhaScreen // Importe a tela CarteirinhaScreen
+import com.example.meutea.welcome.WelcomeScreen
+import com.example.meutea.welcome.WelcomeScreen2
 import com.example.meutea.ui.theme.MeuTEATheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge() // Garante que a interface preencha a tela corretamente
         setContent {
             MeuTEATheme {
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,
-                    startDestination = "welcomeScreen" // Tela inicial
+                    startDestination = "welcomeScreen" // Define a tela inicial
                 ) {
                     // Tela de Boas-Vindas 1
                     composable(route = "welcomeScreen") {
@@ -44,9 +45,8 @@ class MainActivity : ComponentActivity() {
                             onBackClicked = {
                                 navController.popBackStack() // Volta para a tela anterior
                             },
-                            onContinuarClicked = { email, senha ->
-                                // Lógica de login (pode ser implementada aqui)
-                                println("Login com: $email, $senha")
+                            onContinuarClicked = { email, senha, lembrarMe ->
+                                println("Login com: $email, $senha, Lembrar-me: $lembrarMe")
                             },
                             onCadastrarClicked = {
                                 navController.navigate("cadastrarScreen") // Navega para a tela de cadastro
@@ -54,19 +54,28 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // Tela de Cadastro (adicione a tela de cadastro aqui)
-                    // Dentro do NavHost
+                    // Tela de Cadastro
                     composable(route = "cadastrarScreen") {
                         CadastrarScreen(
+                            navController = navController,
                             onBackClicked = {
                                 navController.popBackStack() // Voltar para a tela anterior
                             },
                             onCadastrarClicked = { nome, email, senha ->
-                                println("Usuário cadastrado: $nome, $email, $senha")
+                                println("Usuário cadastrado: $nome, $email")
                             }
                         )
                     }
 
+                    // Tela Menu Principal
+                    composable(route = "MenuPrincipalScreen") {
+                        MenuPrincipalScreen(navController = navController) // Tela já existente
+                    }
+
+                    // Tela Carteirinha
+                    composable(route = "CarteirinhaScreen") {
+                        CarteirinhaScreen(navController = navController) // Adicione a rota para CarteirinhaScreen
+                    }
                 }
             }
         }
@@ -75,9 +84,16 @@ class MainActivity : ComponentActivity() {
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun GreetingPreview() {
+fun MainActivityPreview() {
     MeuTEATheme {
         val navController = rememberNavController()
-        WelcomeScreen(navController = navController)
+        NavHost(
+            navController = navController,
+            startDestination = "welcomeScreen"
+        ) {
+            composable("welcomeScreen") {
+                WelcomeScreen(navController = navController)
+            }
+        }
     }
 }

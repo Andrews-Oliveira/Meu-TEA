@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
+    // Add the Google services Gradle plugin
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -10,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.meutea"
-        minSdk = 24
+        minSdk = 30
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -41,8 +44,24 @@ android {
 
 dependencies {
     implementation(libs.androidx.ui.text.google.fonts)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.storage)
     val nav_version = "2.8.5"
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
 
+
+    // TODO: Add the dependencies for Firebase products you want to use
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation("com.google.firebase:firebase-analytics")
+
+    implementation("com.google.firebase:firebase-auth-ktx")
+
+    // Add the dependencies for any other desired Firebase products
+    // https://firebase.google.com/docs/android/setup#available-libraries
     implementation("androidx.navigation:navigation-compose:$nav_version")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
