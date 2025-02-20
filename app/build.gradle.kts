@@ -52,6 +52,8 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation(libs.firebase.storage.ktx) // Firestore
     implementation("com.google.firebase:firebase-firestore")
+    implementation(libs.androidx.datastore.core.android)
+    implementation(libs.androidx.datastore.preferences.core.jvm)
 
     // Navigation Compose
     val nav_version = "2.8.5"
