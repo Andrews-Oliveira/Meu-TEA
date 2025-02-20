@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "702835801328",
-    "project_id": "back-end-2d515",
-    "storage_bucket": "back-end-2d515.firebasestorage.app"
+    "project_number": "1076336707269",
+    "project_id": "back-end-4da2d",
+    "storage_bucket": "back-end-4da2d.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:702835801328:android:458b42eac297cd00275635",
+        "mobilesdk_app_id": "1:1076336707269:android:dfdaae9b785e09769cd2ac",
         "android_client_info": {
           "package_name": "com.example.meutea"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAEua7jn5l8bbLc2QrfM__A2gVIl9TDn38"
+          "current_key": "AIzaSyA7nwC25lObTHZp88MuiWyajqv4ueOR2eI"
         }
       ],
       "services": {

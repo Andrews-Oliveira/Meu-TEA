@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
     // Add the Google services Gradle plugin
     id("com.google.gms.google-services")
 }
@@ -13,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.meutea"
-        minSdk = 30
+        minSdk = 24
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -43,25 +42,22 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.ui.text.google.fonts)
-    implementation(libs.firebase.firestore.ktx)
-    implementation(libs.firebase.auth.ktx)
-    implementation(libs.androidx.foundation.layout.android)
-    implementation(libs.androidx.foundation.layout.android)
-    implementation(libs.androidx.storage)
+    // Coil para carregamento de imagens
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.9.0")) // Firebase BoM
+    implementation("com.google.firebase:firebase-analytics") // Firebase Analytics
+    implementation("com.google.firebase:firebase-auth-ktx") // Firebase Auth
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation(libs.firebase.storage.ktx) // Firestore
+    implementation("com.google.firebase:firebase-firestore")
+
+    // Navigation Compose
     val nav_version = "2.8.5"
-    // Import the Firebase BoM
-    implementation(libs.firebase.bom)
+    implementation("androidx.navigation:navigation-compose:$nav_version")
 
-
-    // When using the BoM, don't specify versions in Firebase dependencies
-    implementation(libs.firebase.analytics)
-
-    implementation(libs.google.firebase.auth.ktx)
-
-    // Add the dependencies for any other desired Firebase products
-    // https://firebase.google.com/docs/android/setup#available-libraries
-    implementation(libs.androidx.navigation.compose)
+    // AndroidX e Jetpack Compose
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -70,6 +66,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.foundation.layout.android) // Removida a duplicação
+
+    // Testes
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
