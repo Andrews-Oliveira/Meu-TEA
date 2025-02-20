@@ -1,6 +1,5 @@
 package com.example.meutea.LoginCadastrar
 
-import DataSource
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -190,19 +189,23 @@ fun LoginScreen(
     }
 }
 
-// Função de login, agora sem @Composable
+// Função de login
 suspend fun LoginWithFirebase(email: String, senha: String, navController: NavController, context: Context) {
     try {
-        val dataSource = DataSource()
+        val dataSource = com.example.meutea.datasource.DataSource()
         val user = dataSource.signIn(email, senha)
         if (user != null) {
-            navController.navigate("MenuPrincipalScreen")
+            // Usuário autenticado com sucesso
+            navController.navigate("MenuPrincipalScreen") {
+                popUpTo("LoginScreen") { inclusive = true } // Isso irá fechar a tela de login
+            }
         } else {
+            // Caso o usuário seja null
             Toast.makeText(context, "Email ou senha inválidos!", Toast.LENGTH_SHORT).show()
         }
     } catch (e: Exception) {
         Toast.makeText(context, "Erro ao fazer login: ${e.message}", Toast.LENGTH_SHORT).show()
-        e.printStackTrace()  // Isso ajudará a identificar o erro no log
+        e.printStackTrace()  // Para verificar o erro no log
     }
 }
 
