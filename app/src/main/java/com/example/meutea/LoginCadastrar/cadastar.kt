@@ -1,34 +1,47 @@
 package com.example.meutea.LoginCadastrar
 
 import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.R
-import com.google.firebase.auth.FirebaseAuth
+import com.example.meutea.datasource.DataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +57,9 @@ fun CadastrarScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
+    // Instanciando o DataSource
+    val dataSource = DataSource()
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Imagem de fundo com o efeito de blur
         Image(
@@ -51,7 +67,7 @@ fun CadastrarScreen(
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
-                .blur(20.dp),  // Aplica o efeito de borrado
+                .blur(20.dp),
             contentScale = ContentScale.Crop
         )
 
@@ -59,7 +75,7 @@ fun CadastrarScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f)) // Camada preta com opacidade para dar o efeito escuro
+                .background(Color.Black.copy(alpha = 0.5f))
         )
 
         // Conteúdo da tela
@@ -73,17 +89,17 @@ fun CadastrarScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 32.dp, bottom = 16.dp), // Aumenta o espaço do topo
+                    .padding(top = 32.dp, bottom = 16.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
                 Button(
                     onClick = onBackClicked,
                     modifier = Modifier
-                        .padding(start = 1.dp) // Pequeno espaço à esquerda
+                        .padding(start = 1.dp)
                         .height(37.dp)
-                        .fillMaxWidth(0.3f), // Tamanho reduzido
+                        .fillMaxWidth(0.3f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xABFFEB3B)),
-                    shape = MaterialTheme.shapes.medium // Bordas arredondadas
+                    shape = MaterialTheme.shapes.medium
                 ) {
                     Text("Voltar", fontSize = 16.sp, color = Color.White)
                 }
@@ -189,13 +205,14 @@ fun CadastrarScreen(
                             Toast.makeText(context, "Preencha todos os campos!", Toast.LENGTH_SHORT).show()
                         } else {
                             coroutineScope.launch {
-                                val auth = FirebaseAuth.getInstance()
                                 try {
-                                    auth.createUserWithEmailAndPassword(email.value, senha.value).await()
-                                    withContext(Dispatchers.Main) {
-                                        Toast.makeText(context, "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show()
-                                        onCadastrarClicked(nome.value, email.value, senha.value)
-                                        navController.popBackStack() // Volta para a tela anterior
+                                    val user = dataSource.signUp(nome.value, email.value, senha.value)
+                                    if (user != null) {
+                                        withContext(Dispatchers.Main) {
+                                            Toast.makeText(context, "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show()
+                                            onCadastrarClicked(nome.value, email.value, senha.value)
+                                            navController.popBackStack() // Volta para a tela anterior
+                                        }
                                     }
                                 } catch (e: Exception) {
                                     withContext(Dispatchers.Main) {
@@ -209,7 +226,7 @@ fun CadastrarScreen(
                         .fillMaxWidth()
                         .height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xABFFEB3B)),
-                    shape = RoundedCornerShape(12.dp) // Bordas arredondadas
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text("CRIAR", fontSize = 18.sp, color = Color.White)
                 }
@@ -219,6 +236,7 @@ fun CadastrarScreen(
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun CadastrarScreenPreview() {
