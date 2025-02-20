@@ -77,7 +77,9 @@ fun MenuPrincipalScreen(
                 textColor = Color.White,
                 iconId = R.drawable.outline_person_24,
                 color = Color(0xFF2F9ACC),
-                onClick = { navController.navigate("CarteirinhaScreen") }
+                onClick = {
+                    navController.navigate("CarteirinhaViewScreen") // Sem necessidade de cadastrar novamente
+                }
             )
 
             MenuButton(

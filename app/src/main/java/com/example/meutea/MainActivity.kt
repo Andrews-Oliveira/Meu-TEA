@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Função separada para configurar a navegação
+// Função para configurar a navegação
 @Composable
 fun SetupNavGraph(navController: NavHostController) {
     NavHost(
@@ -57,7 +57,7 @@ fun SetupNavGraph(navController: NavHostController) {
                 onContinuarClicked = { email, senha, lembrarMe ->
                     println("Login com: $email, $senha, Lembrar-me: $lembrarMe")
                 },
-                onCadastrarClicked = { navController.navigate("cadastrarScreen") } // Vai para Cadastro
+                onCadastrarClicked = { navController.navigate("cadastrarScreen") } // Navega para Cadastro
             )
         }
 
@@ -68,6 +68,7 @@ fun SetupNavGraph(navController: NavHostController) {
                 onBackClicked = { navController.popBackStack() }, // Volta para Login
                 onCadastrarClicked = { nome, email, senha ->
                     println("Usuário cadastrado: $nome, $email")
+                    navController.navigate("menuPrincipalScreen") // Após cadastro, ir para o Menu Principal
                 }
             )
         }
@@ -77,17 +78,18 @@ fun SetupNavGraph(navController: NavHostController) {
             MenuPrincipalScreen(navController = navController)
         }
 
-        // Tela Carteirinha
+        // Tela da Carteirinha (Apenas Exibição)
+        composable(route = "carteirinhaViewScreen") {
+            CarteirinhaViewScreen(navController = navController)
+        }
+
+        // Tela para Criar a Carteirinha
         composable(route = "carteirinhaScreen") {
             CarteirinhaScreen(navController = navController)
         }
-        composable("carteirinhaViewScreen/{usuarioId}") { backStackEntry ->
-            val usuarioId = backStackEntry.arguments?.getString("usuarioId") ?: ""
-            CarteirinhaViewScreen(navController = navController, usuarioId = usuarioId)
-        }
     }
-
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MainActivityPreview() {
