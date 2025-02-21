@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -98,14 +99,18 @@ fun SetupNavGraph(navController: NavHostController) {
             ConversaScreen(navController = navController)
         }
 
-        // ✅ Rota para "Conversas em Casa"
-        composable("conversaEmCasaScreen") { ConversaEmCasaScreen(navController) }
+// ✅ Rota para "Conversas em Casa"
+        composable("conversaEmCasaScreen") {
+            val context = LocalContext.current // Obtém o contexto correto no Jetpack Compose
+            ConversaEmCasaScreen(context, navController)
+        }
 
-        // ✅ Rota para "Detalhes da Conversa"
+// ✅ Rota para "Detalhes da Conversa"
         composable("conversaDetalhadaScreen/{conversaTitulo}") { backStackEntry ->
             val conversaTitulo = backStackEntry.arguments?.getString("conversaTitulo") ?: "Detalhes"
             ConversaDetalhadaScreen(navController, conversaTitulo)
         }
+
     }
 }
 @Preview(showBackground = true, showSystemUi = true)

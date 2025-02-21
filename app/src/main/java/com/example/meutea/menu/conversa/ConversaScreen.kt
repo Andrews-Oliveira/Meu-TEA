@@ -21,24 +21,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.R
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversaScreen(navController: NavController) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = "Comunicação", fontSize = 20.sp, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    TextButton(
-                        onClick = { navController.popBackStack() }
-                    ) {
-                        Text("Voltar", fontSize = 16.sp, color = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = Color(0xFF6394F0))
-            )
-        }
+        topBar = { TopBar(navController) }, // ✅ Agora usa um TopBar mais elegante
+        containerColor = Color.Transparent
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -55,7 +43,7 @@ fun ConversaScreen(navController: NavController) {
                 contentScale = ContentScale.Crop
             )
 
-            // 🔹 Overlay escuro para melhorar a visibilidade do texto
+            // 🔹 Overlay escuro para melhorar a visibilidade
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -118,6 +106,40 @@ fun ConversaScreen(navController: NavController) {
             }
         }
     }
+}
+
+// ✅ Barra Superior com Botão "Voltar" e Título Centralizado
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopBar(navController: NavController) {
+    TopAppBar(
+        colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = Color(0xFF4A90E2)), // 🔹 Azul moderno
+        title = {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center // 🔹 Garante que o título fique centralizado
+            ) {
+                Text(
+                    text = "Comunicação",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.padding(start = 8.dp) // 🔹 Ajuste no espaçamento do botão
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_24), // 🔹 Ícone de seta para voltar
+                    contentDescription = "Voltar",
+                    tint = Color.White
+                )
+            }
+        }
+    )
 }
 
 // ✅ Título de categoria
