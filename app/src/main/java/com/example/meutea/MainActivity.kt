@@ -16,9 +16,12 @@ import com.example.meutea.menu.CarteirinhaEditScreen
 import com.example.meutea.menu.CarteirinhaScreen
 import com.example.meutea.menu.CarteirinhaViewScreen
 import com.example.meutea.menu.MenuPrincipalScreen
-import com.example.meutea.menu.conversa.ConversaDetalhadaScreen
-import com.example.meutea.menu.conversa.ConversaEmCasaScreen
+import com.example.meutea.menu.conversa.emcasa.ConversaEmCasaScreen
 import com.example.meutea.menu.conversa.ConversaScreen
+import com.example.meutea.menu.conversa.comidas.ComidasScreen
+import com.example.meutea.menu.conversa.dor.DorScreen
+import com.example.meutea.menu.conversa.emocoes.EmocoesScreen
+import com.example.meutea.menu.conversa.necessidades.NecessidadesScreen
 import com.example.meutea.ui.theme.MeuTEATheme
 import com.example.meutea.welcome.WelcomeScreen
 import com.example.meutea.welcome.WelcomeScreen2
@@ -101,14 +104,21 @@ fun SetupNavGraph(navController: NavHostController) {
 
 // ✅ Rota para "Conversas em Casa"
         composable("conversaEmCasaScreen") {
-            val context = LocalContext.current // Obtém o contexto correto no Jetpack Compose
-            ConversaEmCasaScreen(context, navController)
+            val context = LocalContext.current
+            ConversaEmCasaScreen(context, navController) // ✅ Correto
         }
 
-// ✅ Rota para "Detalhes da Conversa"
-        composable("conversaDetalhadaScreen/{conversaTitulo}") { backStackEntry ->
-            val conversaTitulo = backStackEntry.arguments?.getString("conversaTitulo") ?: "Detalhes"
-            ConversaDetalhadaScreen(navController, conversaTitulo)
+        composable("EmocoesScreen") {
+            EmocoesScreen(navController) // ✅ Correto, agora está no mesmo nível
+        }
+        composable("DorScreen") {
+            DorScreen(navController) // ✅ Correto, agora está no mesmo nível
+        }
+        composable("NecessidadesScreen") {
+            NecessidadesScreen(navController) // ✅ Correto, agora está no mesmo nível
+        }
+        composable("ComidasScreen") {
+            ComidasScreen(navController) // ✅ Correto, agora está no mesmo nível
         }
 
     }

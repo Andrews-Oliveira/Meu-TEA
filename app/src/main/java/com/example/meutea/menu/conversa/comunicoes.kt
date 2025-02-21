@@ -5,12 +5,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -74,7 +76,7 @@ fun ConversaScreen(navController: NavController) {
                             title = "Emoções",
                             imageRes = R.mipmap.ic_emocoes_carteirinha_foreground,
                             backgroundColor = Color(0xFF6394F0),
-                            onClick = { /* Navegação para 'Emoções' */ }
+                            onClick = { navController.navigate("EmocoesScreen") }
                         )
                     }
                     item {
@@ -82,7 +84,7 @@ fun ConversaScreen(navController: NavController) {
                             title = "Necessidades",
                             imageRes = R.mipmap.ic_banheiro_foreground,
                             backgroundColor = Color(0xFF847DB0),
-                            onClick = { /* Navegação para 'Necessidades' */ }
+                            onClick = { navController.navigate("NecessidadesScreen") }
                         )
                     }
                     item { CategoryTitle("Rotinas") }
@@ -91,7 +93,8 @@ fun ConversaScreen(navController: NavController) {
                             title = "Dor",
                             imageRes = R.mipmap.ic_dordecabeca_foreground,
                             backgroundColor = Color(0xFF7FA99F),
-                            onClick = { /* Navegação para 'Dor' */ }
+                            onClick = { navController.navigate("DorScreen") }
+
                         )
                     }
                     item {
@@ -99,7 +102,8 @@ fun ConversaScreen(navController: NavController) {
                             title = "Comidas",
                             imageRes = R.mipmap.ic_comidas_foreground,
                             backgroundColor = Color(0xFFEBD0B1),
-                            onClick = { /* Navegação para 'Comidas' */ }
+                            onClick = { navController.navigate("ComidasScreen") }
+
                         )
                     }
                 }
@@ -130,12 +134,16 @@ fun TopBar(navController: NavController) {
         navigationIcon = {
             IconButton(
                 onClick = { navController.popBackStack() },
-                modifier = Modifier.padding(start = 8.dp) // 🔹 Ajuste no espaçamento do botão
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(Color.White)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.baseline_arrow_back_24), // 🔹 Ícone de seta para voltar
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
                     contentDescription = "Voltar",
-                    tint = Color.White
+                    tint = Color.Black
                 )
             }
         }

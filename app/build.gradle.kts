@@ -69,6 +69,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.foundation.layout.android) // Removida a duplicação
+    //audio
+
+    implementation ("com.squareup.okhttp3:okhttp:4.9.3")
+
 
     // Testes
     testImplementation(libs.junit)
