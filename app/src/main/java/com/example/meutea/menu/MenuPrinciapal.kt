@@ -132,12 +132,12 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                         onClick = { navController.navigate("ConversaScreen") } // ✅ Agora leva para a tela de conversas
                     )
 
-                    MenuButton(
-                        text = "ROTINA",
-                        iconId = R.drawable.baseline_today_24,
-                        color = Color(0xFFECB868),
-                        onClick = { navController.navigate("rotina") }
-                    )
+//                    MenuButton(
+//                        text = "ROTINA",
+//                        iconId = R.drawable.baseline_today_24,
+//                        color = Color(0xFFECB868),
+//                        onClick = { navController.navigate("RotinasScreen") }
+//                    )
                 }
             }
         }

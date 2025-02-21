@@ -1,4 +1,4 @@
-package com.example.meutea.menu
+package com.example.meutea.menu.careiradigital
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
