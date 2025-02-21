@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -15,6 +16,9 @@ import com.example.meutea.menu.CarteirinhaEditScreen
 import com.example.meutea.menu.CarteirinhaScreen
 import com.example.meutea.menu.CarteirinhaViewScreen
 import com.example.meutea.menu.MenuPrincipalScreen
+import com.example.meutea.menu.conversa.ConversaDetalhadaScreen
+import com.example.meutea.menu.conversa.ConversaEmCasaScreen
+import com.example.meutea.menu.conversa.ConversaScreen
 import com.example.meutea.ui.theme.MeuTEATheme
 import com.example.meutea.welcome.WelcomeScreen
 import com.example.meutea.welcome.WelcomeScreen2
@@ -91,10 +95,24 @@ fun SetupNavGraph(navController: NavHostController) {
             val usuarioId = backStackEntry.arguments?.getString("usuarioId") ?: ""
             CarteirinhaEditScreen(navController = navController, userId = usuarioId)
         }
+        composable(route = "conversaScreen") { // ✅ Nova rota para a tela de conversas
+            ConversaScreen(navController = navController)
+        }
+
+// ✅ Rota para "Conversas em Casa"
+        composable("conversaEmCasaScreen") {
+            val context = LocalContext.current // Obtém o contexto correto no Jetpack Compose
+            ConversaEmCasaScreen(context, navController)
+        }
+
+// ✅ Rota para "Detalhes da Conversa"
+        composable("conversaDetalhadaScreen/{conversaTitulo}") { backStackEntry ->
+            val conversaTitulo = backStackEntry.arguments?.getString("conversaTitulo") ?: "Detalhes"
+            ConversaDetalhadaScreen(navController, conversaTitulo)
+        }
 
     }
 }
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MainActivityPreview() {

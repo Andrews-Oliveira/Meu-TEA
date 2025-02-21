@@ -129,7 +129,7 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                         text = "CONVERSA",
                         iconId = R.drawable.baseline_chat_24,
                         color = Color(0xFF48AC51),
-                        onClick = { navController.navigate("conversa") }
+                        onClick = { navController.navigate("ConversaScreen") } // ✅ Agora leva para a tela de conversas
                     )
 
                     MenuButton(
