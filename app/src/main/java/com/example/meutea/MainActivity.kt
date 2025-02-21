@@ -3,7 +3,6 @@ package com.example.meutea
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
@@ -12,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.LoginCadastrar.CadastrarScreen
 import com.example.meutea.LoginCadastrar.LoginScreen
+import com.example.meutea.menu.CarteirinhaEditScreen
 import com.example.meutea.menu.CarteirinhaScreen
 import com.example.meutea.menu.CarteirinhaViewScreen
 import com.example.meutea.menu.MenuPrincipalScreen
@@ -22,7 +22,6 @@ import com.example.meutea.welcome.WelcomeScreen2
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge() // Garante que a interface preencha a tela corretamente
         setContent {
             MeuTEATheme {
                 val navController = rememberNavController()
@@ -37,56 +36,62 @@ class MainActivity : ComponentActivity() {
 fun SetupNavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = "welcomeScreen" // Define a tela inicial
+        startDestination = "welcomeScreen"
     ) {
-        // Tela de Boas-Vindas 1
         composable(route = "welcomeScreen") {
             WelcomeScreen(navController = navController)
         }
 
-        // Tela de Boas-Vindas 2
         composable(route = "welcomeScreen2") {
             WelcomeScreen2(navController = navController)
         }
 
-        // Tela de Login
         composable(route = "loginScreen") {
             LoginScreen(
                 navController = navController,
-                onBackClicked = { navController.popBackStack() }, // Volta para a tela anterior
+                onBackClicked = { navController.popBackStack() },
                 onContinuarClicked = { email, senha, lembrarMe ->
                     println("Login com: $email, $senha, Lembrar-me: $lembrarMe")
                 },
-                onCadastrarClicked = { navController.navigate("cadastrarScreen") } // Navega para Cadastro
+                onCadastrarClicked = { navController.navigate("cadastrarScreen") }
             )
         }
 
-        // Tela de Cadastro
         composable(route = "cadastrarScreen") {
             CadastrarScreen(
                 navController = navController,
-                onBackClicked = { navController.popBackStack() }, // Volta para Login
+                onBackClicked = { navController.popBackStack() },
                 onCadastrarClicked = { nome, email, senha ->
                     println("Usuário cadastrado: $nome, $email")
-                    navController.navigate("menuPrincipalScreen") // Após cadastro, ir para o Menu Principal
+                    navController.navigate("menuPrincipalScreen/{usuarioId}") {
+                        popUpTo("cadastrarScreen") { inclusive = true }
+                    }
                 }
             )
         }
 
-        // Tela Menu Principal
-        composable(route = "menuPrincipalScreen") {
-            MenuPrincipalScreen(navController = navController)
+        // 🔹 Menu Principal agora recebe `usuarioId`
+        composable("menuPrincipalScreen/{usuarioId}") { backStackEntry ->
+            val usuarioId = backStackEntry.arguments?.getString("usuarioId") ?: ""
+            MenuPrincipalScreen(navController = navController, usuarioId = usuarioId)
         }
 
-        // Tela da Carteirinha (Apenas Exibição)
-        composable(route = "carteirinhaViewScreen") {
-            CarteirinhaViewScreen(navController = navController)
+        // 🔹 Exibir Carteirinha com `usuarioId`
+        composable("carteirinhaViewScreen/{usuarioId}") { backStackEntry ->
+            val usuarioId = backStackEntry.arguments?.getString("usuarioId") ?: ""
+            CarteirinhaViewScreen(navController = navController, userId = usuarioId)
         }
 
-        // Tela para Criar a Carteirinha
-        composable(route = "carteirinhaScreen") {
-            CarteirinhaScreen(navController = navController)
+        // 🔹 Criar Carteirinha com `usuarioId`
+        composable(route = "carteirinhaScreen/{usuarioId}") { backStackEntry ->
+            val usuarioId = backStackEntry.arguments?.getString("usuarioId") ?: ""
+            CarteirinhaScreen(navController = navController, usuarioId = usuarioId)
         }
+        composable("editarCarteirinha/{usuarioId}") { backStackEntry ->
+            val usuarioId = backStackEntry.arguments?.getString("usuarioId") ?: ""
+            CarteirinhaEditScreen(navController = navController, userId = usuarioId)
+        }
+
     }
 }
 

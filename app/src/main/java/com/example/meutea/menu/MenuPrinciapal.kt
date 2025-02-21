@@ -4,10 +4,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -15,101 +15,191 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.meutea.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MenuPrincipalScreen(
-    navController: NavController
-) {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Fundo com imagem borrada
-        Image(
-            painter = painterResource(id = R.drawable.imghome_background),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(12.dp),
-            contentScale = ContentScale.Crop
-        )
+fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
+    var userId by remember { mutableStateOf<String?>(null) }
+    var drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
-        // Overlay escuro para reduzir a claridade do fundo
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.3f))
-        )
-
-        // Conteúdo principal
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-        ) {
-            Image(
-                painter = painterResource(id = R.mipmap.ic_meutea),
-                contentDescription = "Logo",
-                modifier = Modifier.size(200.dp, 170.dp)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "Bem-vindo",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.White
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Botões de Menu
-            MenuButton(
-                text = "CARTEIRA DIGITAL",
-                textColor = Color.White,
-                iconId = R.drawable.outline_person_24,
-                color = Color(0xFF2F9ACC),
-                onClick = {
-                    navController.navigate("CarteirinhaViewScreen") // Sem necessidade de cadastrar novamente
+    // Buscar o ID do usuário no Firestore
+    LaunchedEffect(Unit) {
+        FirebaseFirestore.getInstance().collection("usuarios")
+            .limit(1)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    userId = documents.documents[0].id
                 }
-            )
+            }
+    }
 
-            MenuButton(
-                text = "CONVERSA",
-                textColor = Color.White,
-                iconId = R.drawable.baseline_chat_24,
-                color = Color(0xFF48AC51),
-                onClick = { navController.navigate("conversa") }
-            )
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            DrawerContent(navController, drawerState)
+        }
+    ) {
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar( // 🔹 Agora o título está realmente centralizado!
+                    title = {
+                        Text(
+                            text = "MeuTEA",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0072CE))
+                )
+            }
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                // 🔹 Fundo com imagem borrada
+                Image(
+                    painter = painterResource(id = R.drawable.imghome_background),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(10.dp), // 🔥 Agora o fundo está realmente borrado!
+                    contentScale = ContentScale.Crop
+                )
 
-            MenuButton(
-                text = "ROTINA",
-                textColor = Color.White,
-                iconId = R.drawable.baseline_today_24,
-                color = Color(0xFFF1C27B),
-                onClick = { navController.navigate("rotina") }
-            )
+                // 🔹 Overlay escuro para melhorar a visibilidade do texto
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f))
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center // 🔹 Agora o "Bem-vindo" fica mais alinhado
+                ) {
+                    Text(
+                        text = "Bem-vindo",
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    MenuButton(
+                        text = "CARTEIRA DIGITAL",
+                        iconId = R.drawable.outline_person_24,
+                        color = Color(0xFF2F9ACC),
+                        onClick = {
+                            FirebaseFirestore.getInstance().collection("usuarios").document(usuarioId)
+                                .get()
+                                .addOnSuccessListener { document ->
+                                    if (document.exists() && document.getBoolean("carteira_digital") == true) {
+                                        navController.navigate("carteirinhaViewScreen/$usuarioId")
+                                    } else {
+                                        navController.navigate("carteirinhaScreen/$usuarioId")
+                                    }
+                                }
+                        }
+                    )
+
+                    MenuButton(
+                        text = "CONVERSA",
+                        iconId = R.drawable.baseline_chat_24,
+                        color = Color(0xFF48AC51),
+                        onClick = { navController.navigate("conversa") }
+                    )
+
+                    MenuButton(
+                        text = "ROTINA",
+                        iconId = R.drawable.baseline_today_24,
+                        color = Color(0xFFECB868),
+                        onClick = { navController.navigate("rotina") }
+                    )
+                }
+            }
         }
     }
 }
 
+@Composable
+fun DrawerContent(navController: NavController, drawerState: DrawerState) {
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(280.dp)
+            .background(Color(0xD6002244))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(
+            text = "MeuTEA",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
 
+        // Botão de Logout
+        Button(
+            onClick = {
+                FirebaseAuth.getInstance().signOut()
+                navController.navigate("loginScreen") {
+                    popUpTo("menuPrincipalScreen") { inclusive = true }
+                }
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Logout", color = Color.White)
+        }
 
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Informações dos Desenvolvedores
+        Text(
+            text = "Desenvolvido por:",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+
+        Text(
+            text = "Andrews Viana\nJoelson dos Santos\nWelliguinton Kaque",
+            fontSize = 14.sp,
+            color = Color.White,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}
 
 @Composable
 fun MenuButton(
     text: String,
     iconId: Int,
     color: Color,
-    textColor: Color = Color.White, // Alterado para branco para melhor contraste
     onClick: () -> Unit
 ) {
     Button(
@@ -127,7 +217,7 @@ fun MenuButton(
             Text(
                 text = text,
                 fontSize = 22.sp,
-                color = textColor,
+                color = Color.White,
                 modifier = Modifier.weight(1f)
             )
             Image(
@@ -137,10 +227,4 @@ fun MenuButton(
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewMenuPrincipalScreen() {
-    MenuPrincipalScreen(navController = rememberNavController())
 }
