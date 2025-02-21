@@ -1,4 +1,4 @@
-package com.example.meutea.menu.conversa
+package com.example.meutea.menu.conversa.emcasa
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
@@ -30,15 +30,20 @@ fun ConversaEmCasaScreen(context: Context, navController: NavHostController) {
     LaunchedEffect(Unit) {
         tts.value = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                val result = tts.value?.setLanguage(Locale("pt", "BR"))
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    println("Erro: Português não suportado no dispositivo!")
+                val voices = tts.value?.voices // Obtém todas as vozes disponíveis
+                val childVoice = voices?.find { it.name.contains("child", ignoreCase = true) } // Procura voz de criança
+
+                if (childVoice != null) {
+                    tts.value?.voice = childVoice // Define a voz infantil
+                } else {
+                    tts.value?.setLanguage(Locale("pt", "BR")) // Usa o TTS normal se não encontrar uma voz de criança
                 }
             } else {
                 println("Erro ao inicializar TTS!")
             }
         }
     }
+
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -91,7 +96,7 @@ fun TopBar(navController: NavHostController, s: String) {
                 contentAlignment = Alignment.Center // 🔹 Garante que o título fique centralizado
             ) {
                 Text(
-                    text = "Comunicação",
+                    text = "DIA A DIA",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -101,10 +106,10 @@ fun TopBar(navController: NavHostController, s: String) {
         navigationIcon = {
             IconButton(
                 onClick = { navController.popBackStack() },
-                modifier = Modifier.padding(start = 8.dp) // 🔹 Ajuste no espaçamento
+                modifier = Modifier.padding(start = 8.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.baseline_arrow_back_24), // 🔹 Ícone mais elegante
+                    painter = painterResource(id = R.drawable.baseline_arrow_back_24),
                     contentDescription = "Voltar",
                     tint = Color.White
                 )
@@ -122,10 +127,10 @@ fun OptionsGrid(tts: TextToSpeech?) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        item { OptionCard("GOSTEI", R.drawable.gostei, tts) }
-        item { OptionCard("QUERO", R.drawable.quero, tts) }
+        item { OptionCard("EU GOSTEI", R.drawable.gostei, tts) }
+        item { OptionCard("EU QUERO", R.drawable.quero, tts) }
         item { OptionCard("PEGUE", R.drawable.pegar, tts) }
-        item { OptionCard("FAÇO", R.drawable.faco, tts) }
+        item { OptionCard("EU FAÇO", R.drawable.faco, tts) }
     }
 }
 
@@ -134,11 +139,12 @@ fun OptionsGrid(tts: TextToSpeech?) {
 fun OptionCard(text: String, imageRes: Int, tts: TextToSpeech?) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFCDE0F9)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFD0DCF3)),
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
+                tts?.stop()
                 tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
             }
     ) {
@@ -148,15 +154,21 @@ fun OptionCard(text: String, imageRes: Int, tts: TextToSpeech?) {
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Text(
+                text = text,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             Image(
                 painter = painterResource(id = imageRes),
                 contentDescription = text,
                 modifier = Modifier
-                    .size(100.dp)
-                    .clickable { tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null) }
+                    .size(150.dp)
+                    .aspectRatio(1f),
+                contentScale = ContentScale.Fit
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = text, fontSize = 32.sp, color = Color.Black)
         }
     }
 }
