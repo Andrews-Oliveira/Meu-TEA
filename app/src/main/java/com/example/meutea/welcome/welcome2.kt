@@ -23,13 +23,11 @@ import androidx.navigation.compose.rememberNavController
 import com.example.meutea.R
 
 @Composable
-fun WelcomeScreen2(
-    navController: NavController
-) {
+fun WelcomeScreen2(navController: NavController) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Fundo borrado
+        // Fundo desfocado
         Image(
             painter = painterResource(id = R.drawable.img_background),
             contentDescription = null,
@@ -39,7 +37,7 @@ fun WelcomeScreen2(
             contentScale = ContentScale.Crop
         )
 
-        // Overlay escuro para melhorar contraste
+        // Sobreposição escura para melhorar contraste
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -52,75 +50,77 @@ fun WelcomeScreen2(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Logo
+            Spacer(modifier = Modifier.weight(0.2f)) // Adiciona espaço antes do logo
+
+            // Logo ajustado para diferentes telas
             Image(
                 painter = painterResource(id = R.mipmap.ic_meutea_24_foreground),
                 contentDescription = "Logo MeuTEA",
                 modifier = Modifier
-                    .size(200.dp)
-                    .padding(top = 16.dp)
+                    .fillMaxWidth(0.5f)
+                    .aspectRatio(1f)
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Texto de boas-vindas
             Text(
                 text = "Divirta-se enquanto aprende a se comunicar através de imagens e exercícios sociais.\n\nJunte-se a nós para crescer e aprender!",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp, // Ajustado para melhor leitura
+                fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
-                color = Color(0xCCFFFFFF),
+                color = Color.White.copy(alpha = 0.9f),
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 16.dp)
+                    .fillMaxWidth(0.9f)
+                    .padding(horizontal = 16.dp)
             )
 
-            // Imagem ilustrativa
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Imagem ilustrativa ajustada
             Image(
                 painter = painterResource(id = R.mipmap.ic_imagetea_foreground),
                 contentDescription = "Imagem MeuTEA",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-                    .padding(top = 10.dp)
+                    .fillMaxWidth(1f)
+                    .aspectRatio(1.2f) // Mantém a proporção sem cortar
             )
 
-            // Adiciona espaço dinâmico para empurrar os botões para baixo
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(0.6f)) // Ajuste dinâmico do espaço antes dos botões
 
-            // Botões
+            // Botões ajustados
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(bottom = 55.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
                     onClick = { navController.navigate("welcomeScreen") },
-                    modifier = Modifier.width(120.dp),
-                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 30.dp)
+                        .height(45.dp), // Altura ajustada para melhor clique
+                    shape = RoundedCornerShape(12.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xC60ABBDE)
+                        containerColor = Color(0xC60ABBDE) // Azul vibrante
                     )
                 ) {
-                    Text(
-                        text = "Voltar",
-                        fontSize = 18.sp,
-                        color = Color.White
-                    )
+                    Text(text = "Voltar", fontSize = 16.sp, color = Color.White)
                 }
 
                 Button(
                     onClick = { navController.navigate("loginScreen") },
-                    modifier = Modifier.width(120.dp),
-                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 30.dp)
+                        .height(45.dp), // Altura ajustada para melhor clique
+                    shape = RoundedCornerShape(12.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xABFFEB3B)
+                        containerColor = Color(0xABFFEB3B) // Amarelo vibrante
                     )
                 ) {
-                    Text(
-                        text = "Próximo",
-                        fontSize = 18.sp,
-                        color = Color.White
-                    )
+                    Text(text = "Próximo", fontSize = 16.sp, color = Color.White)
                 }
             }
         }
@@ -129,7 +129,7 @@ fun WelcomeScreen2(
 
 @Preview(showBackground = true)
 @Composable
-private fun TaskListPreview() {
+private fun WelcomeScreen2Preview() {
     val navController = rememberNavController()
     WelcomeScreen2(navController)
 }

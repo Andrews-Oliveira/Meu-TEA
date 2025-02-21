@@ -4,75 +4,91 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.meutea.menu.edits.EditableTextFieldRow
 import com.example.meutea.models.Usuario
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-
+// 🔹 Lista de Estados do Brasil
+val estadosDoBrasil = listOf(
+    "Selecione",
+    "Acre (AC)",
+    "Alagoas (AL)",
+    "Amapá (AP)",
+    "Amazonas (AM)",
+    "Bahia (BA)",
+    "Ceará (CE)",
+    "Distrito Federal (DF)",
+    "Espírito Santo (ES)",
+    "Goiás (GO)",
+    "Maranhão (MA)",
+    "Mato Grosso (MT)",
+    "Mato Grosso do Sul (MS)",
+    "Minas Gerais (MG)",
+    "Pará (PA)",
+    "Paraíba (PB)",
+    "Paraná (PR)",
+    "Pernambuco (PE)",
+    "Piauí (PI)",
+    "Rio de Janeiro (RJ)",
+    "Rio Grande do Norte (RN)",
+    "Rio Grande do Sul (RS)",
+    "Rondônia (RO)",
+    "Roraima (RR)",
+    "Santa Catarina (SC)",
+    "São Paulo (SP)",
+    "Sergipe (SE)",
+    "Tocantins (TO)"
+)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CarteirinhaScreen(navController: NavController) {
-    // Estados dos campos
+
+fun CarteirinhaScreen(navController: NavController, usuarioId: String) {
+
     var nome by remember { mutableStateOf("") }
     var cpf by remember { mutableStateOf("") }
     var rg by remember { mutableStateOf("") }
     var nascimento by remember { mutableStateOf("") }
-    var naturalidade by remember { mutableStateOf("") }
-    var uf by remember { mutableStateOf("") }
-    var cid by remember { mutableStateOf("") }
-    var tipoSanguineo by remember { mutableStateOf("") }
+    var genero by remember { mutableStateOf("Selecione") }
+    var tipoSanguineo by remember { mutableStateOf("Selecione") }
+    var telefoneContato by remember { mutableStateOf("") }
+    var emailContato by remember { mutableStateOf("") } // ✅ Adicionado o campo de e-mail
     var endereco by remember { mutableStateOf("") }
-    var telefone by remember { mutableStateOf("") }
+    var estado by remember { mutableStateOf("Selecione") }
+    var cid by remember { mutableStateOf("") }
+    var naturalidade by remember { mutableStateOf("") }
+
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
     val db = Firebase.firestore
 
-    // Funções de formatação dos campos
-    fun formatInput(input: String, maxLength: Int): String = input.take(maxLength)
-
-    fun formatCpfInput(input: String): String =
-        input.replace(Regex("[^\\d]"), "").take(11)
-            .replace(Regex("(\\d{3})(\\d{3})(\\d{3})(\\d{2})"), "$1.$2.$3-$4")
-
-    fun formatTelefoneInput(input: String): String =
-        input.replace(Regex("[^\\d]"), "").take(11)
-            .replace(Regex("(\\d{2})(\\d{5})(\\d{4})"), "($1) $2-$3")
-
-    fun formatNascimentoInput(input: String): String =
-        input.replace(Regex("[^\\d]"), "").take(8)
-            .replace(Regex("(\\d{2})(\\d{2})(\\d{4})"), "$1/$2/$3")
-
-    // Validação dos campos
     fun validarCampos(): Boolean {
-        return nome.isNotBlank() &&
-                cpf.length == 14 &&
-                rg.isNotBlank() &&
-                nascimento.isNotBlank() &&
-                naturalidade.isNotBlank() &&
-                uf.isNotBlank() &&
-                cid.isNotBlank() &&
-                tipoSanguineo.isNotBlank() &&
-                endereco.isNotBlank() &&
-                telefone.length == 15
+        if (nome.isBlank() || cpf.length != 11 || rg.length !in 7..9 || nascimento.length != 8 ||
+            tipoSanguineo == "Selecione" || telefoneContato.length != 11 ||
+            genero == "Selecione" || endereco.isBlank() || estado == "Selecione" ||
+            naturalidade.isBlank() || cid.isBlank() || emailContato.isBlank() || !emailContato.contains("@")
+        ) {
+            errorMessage = "Preencha todos os campos corretamente!"
+            return false
+        }
+        return true
     }
 
-    // Função para salvar os dados no Firestore
     fun salvarDadosNoFirestore() {
-        if (!validarCampos()) {
-            errorMessage = "Preencha todos os campos corretamente!"
-            return
-        }
+        if (!validarCampos()) return
+
         isLoading = true
         errorMessage = null
 
@@ -81,20 +97,29 @@ fun CarteirinhaScreen(navController: NavController) {
             cpf = cpf,
             rg = rg,
             nascimento = nascimento,
-            naturalidade = naturalidade,
-            uf = uf,
-            cid = cid,
+            genero = genero,
             tipoSanguineo = tipoSanguineo,
+            telefone = telefoneContato,
+            email = emailContato,
             endereco = endereco,
-            telefone = telefone,
-            imageUrl = "" // Sem imagem, pode ficar vazio
+            estado = estado,
+            cid = cid,
+            naturalidade = naturalidade
         )
 
-        db.collection("usuarios")
-            .add(usuario)
-            .addOnSuccessListener { docRef ->
-                Log.d("Firestore", "Usuário salvo com sucesso com ID: ${docRef.id}")
-                navController.navigate("CarteirinhaViewScreen/${docRef.id}")
+        db.collection("usuarios").document(usuarioId)
+            .set(usuario)
+            .addOnSuccessListener {
+                // ✅ Atualiza `carteira_digital = true` no Firestore
+                db.collection("usuarios").document(usuarioId)
+                    .update("carteira_digital", true)
+                    .addOnSuccessListener {
+                        Log.d("Firestore", "Carteira digital ativada para usuário: $usuarioId")
+                        // ✅ Após salvar, redireciona para `CarteirinhaViewScreen`
+                        navController.navigate("carteirinhaViewScreen/$usuarioId") {
+                            popUpTo("CarteirinhaScreen") { inclusive = true }
+                        }
+                    }
             }
             .addOnFailureListener { e ->
                 errorMessage = "Erro ao salvar dados: ${e.message}"
@@ -104,62 +129,106 @@ fun CarteirinhaScreen(navController: NavController) {
             }
     }
 
-    // Layout utilizando Jetpack Compose
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0072CE))
-    ) {
-        Column(
+
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Cadastro da Carteirinha", color = Color.White) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0072CE))
+            )
+        }
+    ) { paddingValues ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(Color.White)
+                .padding(paddingValues)
         ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    EditableTextFieldRow("Nome:", nome, { nome = formatInput(it, 50) })
-                    EditableTextFieldRow("CPF:", cpf, { cpf = formatCpfInput(it) }, isNumeric = true)
-                    EditableTextFieldRow("RG:", rg, { rg = formatInput(it, 15) }, isNumeric = true)
-                    EditableTextFieldRow("Nascimento:", nascimento, { nascimento = formatNascimentoInput(it) })
-                    EditableTextFieldRow("Naturalidade:", naturalidade, { naturalidade = formatInput(it, 20) })
-                    EditableTextFieldRow("UF:", uf, { uf = formatInput(it, 2) })
-                    EditableTextFieldRow("CID:", cid, { cid = formatInput(it, 20) })
-                    EditableTextFieldRow("Tipo Sanguíneo:", tipoSanguineo, { tipoSanguineo = formatInput(it, 4) })
-                    EditableTextFieldRow("Endereço:", endereco, { endereco = formatInput(it, 50) })
-                    EditableTextFieldRow("Telefone:", telefone, { telefone = formatTelefoneInput(it) }, isNumeric = true)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            errorMessage?.let {
-                Text(text = it, color = Color.Red, fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            Button(
-                onClick = { salvarDadosNoFirestore() },
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0072CE))
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = screenWidth * 0.05f),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = Color.White
-                    )
-                } else {
-                    Text(text = "Avançar", fontSize = 18.sp, color = Color.White)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        CustomTextField("Nome Completo", nome, 50) { nome = it }
+                        CustomFormattedTextField("CPF", cpf, "###########", 11) { cpf = it }
+                        CustomFormattedTextField("RG", rg, "########", 9) { rg = it }
+                        CustomFormattedTextField(
+                            "Data de Nascimento",
+                            nascimento,
+                            "##/##/####",
+                            8
+                        ) { nascimento = it }
+                        DropdownMenuField(
+                            "Sexo",
+                            genero,
+                            listOf("Masculino", "Feminino", "Outro")
+                        ) { genero = it }
+                        DropdownMenuField(
+                            "Tipo Sanguíneo",
+                            tipoSanguineo,
+                            listOf("A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-")
+                        ) { tipoSanguineo = it }
+                        CustomTextField("Naturalidade", naturalidade, 50) { naturalidade = it }
+                        CustomTextField("CID", cid, 20) { cid = it }
+                        CustomTextField("Endereço", endereco, 100) { endereco = it }
+                        DropdownMenuField("Estado (UF)", estado, estadosDoBrasil) { estado = it }
+                        CustomTextField("E-mail", emailContato, 50) { emailContato = it } // ✅ Adicionado no layout
+                        CustomFormattedTextField(
+                            "Telefone",
+                            telefoneContato,
+                            "(##)#########",
+                            11
+                        ) { telefoneContato = it }
+                    }
+                }
+
+                // 🔹 Espaçamento extra antes dos botões
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 🔹 Exibir mensagem de erro se houver
+                errorMessage?.let {
+                    Text(it, color = Color.Red, fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                // 🔹 Botões com espaço extra inferior
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 32.dp), // Garante espaço extra na parte inferior
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Button(
+                            onClick = { navController.popBackStack() },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Voltar")
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Button(
+                            onClick = { salvarDadosNoFirestore() },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Salvar")
+                        }
+                    }
                 }
             }
+
         }
+
     }
+
 }

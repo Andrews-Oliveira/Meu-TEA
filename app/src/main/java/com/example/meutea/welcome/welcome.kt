@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-//import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,14 +22,12 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.R
 
-//@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WelcomeScreen(
-    navController: NavController
-) {
+fun WelcomeScreen(navController: NavController) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
+        // Fundo desfocado
         Image(
             painter = painterResource(id = R.drawable.img_background),
             contentDescription = null,
@@ -40,7 +37,7 @@ fun WelcomeScreen(
             contentScale = ContentScale.Crop
         )
 
-        // Overlay escuro para reduzir a claridade
+        // Sobreposição escura para melhorar a legibilidade
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -50,86 +47,91 @@ fun WelcomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.weight(0.5f))
+            Spacer(modifier = Modifier.weight(0.3f)) // Espaço antes do título (quanto menor, mais para cima fica o título)
 
+            // Título maior para melhor visibilidade
             Text(
-                color = Color.White,
                 text = "Bem-vindo ao",
-                fontSize = 32.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
+                color = Color.White,
                 modifier = Modifier.fillMaxWidth()
             )
             Text(
-                color = Color.White,
                 text = "Meu TEA",
-                fontSize = 36.sp,
+                fontSize = 34.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
+                color = Color.White,
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // Ajuste do tamanho do logo
             Image(
                 painter = painterResource(id = R.mipmap.ic_background_meutea_foreground),
                 contentDescription = "Logo MeuTEA",
                 modifier = Modifier
-                    .fillMaxWidth(0.8f)
+                    .fillMaxWidth(0.5f)
                     .aspectRatio(1f)
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // Texto explicativo com melhor espaçamento
             Text(
-
                 text = "Um aplicativo de comunicação alternativa para ajudar crianças e adolescentes com autismo a expressarem seus desejos, emoções e necessidades de forma simples e eficaz.",
-                fontSize = 18.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
                 color = Color.White,
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
+                    .padding(horizontal = 8.dp)
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            // Esse Spacer define o espaço entre o texto e os botões
+            // **Diminua esse valor para subir os botões**
+            Spacer(modifier = Modifier.weight(0.5f)) // Antes estava 0.8f, agora está 0.5f para subir os botões
 
+            // Botões reposicionados e ajustados
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(bottom = 70.dp), // Reduzi a margem inferior para subir um pouco mais
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
                     onClick = { navController.navigate("LoginScreen") },
-                    modifier = Modifier.width(120.dp),
-                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 30.dp)
+                        .height(45.dp), // Reduzi a altura dos botões para melhor equilíbrio
+                    shape = RoundedCornerShape(12.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xABFFEB3B)
+                        containerColor = Color(0xFFDBB600) // Amarelo mais vibrante
                     )
                 ) {
-                    Text(
-                        text = "Pular",
-                        fontSize = 18.sp, // Ajustado para melhor visualização
-                        color = Color.White
-                    )
+                    Text(text = "Pular", fontSize = 16.sp, color = Color.White)
                 }
 
                 Button(
                     onClick = { navController.navigate("welcomeScreen2") },
-                    modifier = Modifier.width(120.dp),
-                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 30.dp)
+                        .height(45.dp), // Reduzi a altura dos botões para melhor equilíbrio
+                    shape = RoundedCornerShape(12.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Color(0xC60ABBDE)
+                        containerColor = Color(0xFF007BBB) // Azul mais vibrante
                     )
                 ) {
-                    Text(
-                        text = "Próximo",
-                        fontSize = 18.sp,
-                        color = Color.White)
+                    Text(text = "Próximo", fontSize = 16.sp, color = Color.White)
                 }
             }
         }
@@ -139,6 +141,6 @@ fun WelcomeScreen(
 @Preview(showBackground = true)
 @Composable
 private fun WelcomeScreenPreview() {
-   val navController = rememberNavController()
+    val navController = rememberNavController()
     WelcomeScreen(navController)
 }
