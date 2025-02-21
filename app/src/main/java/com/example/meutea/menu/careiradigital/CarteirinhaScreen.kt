@@ -1,11 +1,10 @@
-package com.example.meutea.menu
+package com.example.meutea.menu.careiradigital
 
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,10 +12,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.meutea.menu.CustomFormattedTextField
+import com.example.meutea.menu.DropdownMenuField
 import com.example.meutea.models.Usuario
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -160,7 +160,9 @@ fun CarteirinhaScreen(navController: NavController, usuarioId: String) {
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        CustomTextField("Nome Completo", nome, 50) { nome = it }
+                        com.example.meutea.menu.CustomTextField("Nome Completo", nome, 50) {
+                            nome = it
+                        }
                         CustomFormattedTextField("CPF", cpf, "###########", 11) { cpf = it }
                         CustomFormattedTextField("RG", rg, "########", 9) { rg = it }
                         CustomFormattedTextField(
@@ -179,11 +181,23 @@ fun CarteirinhaScreen(navController: NavController, usuarioId: String) {
                             tipoSanguineo,
                             listOf("A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-")
                         ) { tipoSanguineo = it }
-                        CustomTextField("Naturalidade", naturalidade, 50) { naturalidade = it }
-                        CustomTextField("CID", cid, 20) { cid = it }
-                        CustomTextField("Endereço", endereco, 100) { endereco = it }
+                        com.example.meutea.menu.CustomTextField(
+                            "Naturalidade",
+                            naturalidade,
+                            50
+                        ) { naturalidade = it }
+                        com.example.meutea.menu.CustomTextField("CID", cid, 20) { cid = it }
+                        com.example.meutea.menu.CustomTextField(
+                            "Endereço",
+                            endereco,
+                            100
+                        ) { endereco = it }
                         DropdownMenuField("Estado (UF)", estado, estadosDoBrasil) { estado = it }
-                        CustomTextField("E-mail", emailContato, 50) { emailContato = it } // ✅ Adicionado no layout
+                        com.example.meutea.menu.CustomTextField(
+                            "E-mail",
+                            emailContato,
+                            50
+                        ) { emailContato = it } // ✅ Adicionado no layout
                         CustomFormattedTextField(
                             "Telefone",
                             telefoneContato,

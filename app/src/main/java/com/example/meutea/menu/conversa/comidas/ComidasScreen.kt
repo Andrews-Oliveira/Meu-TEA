@@ -118,10 +118,10 @@ fun OptionsGrid(tts: TextToSpeech?) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        item { OptionCard("ARROZ", R.drawable.arroz, tts) }
-        item { OptionCard("FEIJÃO", R.drawable.feijao, tts) }
-        item { OptionCard("COMER", R.drawable.prato, tts) }
-        item { OptionCard("CARNE", R.drawable.carne, tts) }
+        item { OptionCard("EU QUERO ARROZ", R.drawable.arroz, tts) }
+        item { OptionCard("EU QUERO FEIJÃO", R.drawable.feijao, tts) }
+        item { OptionCard("EU QUERO COMER", R.drawable.prato, tts) }
+        item { OptionCard("EU QUERO CARNE", R.drawable.carne, tts) }
     }
 }
 @Composable

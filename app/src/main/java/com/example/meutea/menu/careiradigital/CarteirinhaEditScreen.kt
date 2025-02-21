@@ -1,4 +1,4 @@
-package com.example.meutea.menu
+package com.example.meutea.menu.careiradigital
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,7 +72,7 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("Editar Carteirinha", fontSize = 20.sp) },
+                        title = { Text("Editar Carteirinha", fontSize = 20.sp, color = Color.White) },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
                     )
                 }
@@ -165,15 +166,24 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
 }
 
 // 🔹 Função reutilizável para os campos de entrada
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTextField(label: String, value: String, onValueChange: (String) -> Unit) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
+        label = { Text(label, color = Color.Black) },
+        textStyle = TextStyle(color = Color.Black),
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = Color.Gray,
+            unfocusedBorderColor = Color.LightGray,
+            cursorColor = Color.Black
+        ),
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
     )
+
+
 }
