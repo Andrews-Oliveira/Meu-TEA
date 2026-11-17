@@ -174,7 +174,7 @@ fun CustomTextField(label: String, value: String, onValueChange: (String) -> Uni
         onValueChange = onValueChange,
         label = { Text(label, color = Color.Black) },
         textStyle = TextStyle(color = Color.Black),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
+        colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color.Gray,
             unfocusedBorderColor = Color.LightGray,
             cursorColor = Color.Black
