@@ -75,7 +75,7 @@ private val sugestoes = listOf(
 
 private fun hoje(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
-private fun horarioValido(value: String): Boolean {
+internal fun horarioValido(value: String): Boolean {
     val parts = value.split(":")
     if (parts.size != 2 || parts.any { it.length != 2 }) return false
     val hh = parts[0].toIntOrNull() ?: return false
