@@ -231,7 +231,7 @@ suspend fun LoginWithFirebase(email: String, senha: String, navController: NavCo
         }
 
         if (user != null) {
-            Log.d("LoginDebug", "Usuário autenticado com sucesso: ${user.email}, UID: ${user.uid}")
+            Log.d("LoginDebug", "Usuário autenticado com sucesso.")
 
             // 🔹 Verifica se o usuário já existe no Firestore
             val userDocRef = db.collection("usuarios").document(user.uid)
