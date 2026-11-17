@@ -9,6 +9,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -132,4 +138,28 @@ fun TeaSectionLabel(
         color = Color.White,
         fontWeight = FontWeight.ExtraBold
     )
+}
+
+
+/** Sincroniza tema entre telas e contas, sem depender de sexo ou idade. */
+@Composable
+fun rememberTeaTheme(): String {
+    val uid = FirebaseAuth.getInstance().currentUser?.uid
+    var theme by remember(uid) { mutableStateOf("masculino") }
+    DisposableEffect(uid) {
+        if (uid == null) {
+            onDispose { }
+        } else {
+            val registration = FirebaseFirestore.getInstance()
+                .collection("usuarios").document(uid)
+                .addSnapshotListener { doc, error ->
+                    if (error == null && doc != null) {
+                        theme = if (doc.getString("tema_visual") == "feminino") "feminino"
+                        else "masculino"
+                    }
+                }
+            onDispose { registration.remove() }
+        }
+    }
+    return theme
 }
