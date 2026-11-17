@@ -55,6 +55,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.meutea.R
+import com.example.meutea.ui.TeaGlassPanel
+import com.example.meutea.ui.TeaPalette
+import com.example.meutea.ui.TeaWallpaper
+import com.example.meutea.ui.rememberTeaTheme
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Locale
@@ -93,10 +100,26 @@ private val iniciais = listOf(
 )
 
 private fun faceDrawable(id: String): Int? = when (id) {
-    "feliz" -> R.drawable.tea_feliz
-    "triste" -> R.drawable.tea_triste
+    "agua" -> R.drawable.tea_pic_agua
+    "comer" -> R.drawable.tea_pic_comer
+    "banheiro" -> R.drawable.tea_pic_banheiro
+    "ajuda" -> R.drawable.tea_pic_ajuda
+    "feliz" -> R.drawable.tea_pic_feliz
+    "triste" -> R.drawable.tea_pic_triste
     "medo" -> R.drawable.tea_medo
     "raiva" -> R.drawable.tea_raiva
+    "cansaco" -> R.drawable.tea_pic_cansaco
+    "dor" -> R.drawable.tea_pic_dor
+    "silencio" -> R.drawable.tea_pic_silencio
+    "pausa" -> R.drawable.tea_pic_pausa
+    "sim" -> R.drawable.tea_pic_sim
+    "nao" -> R.drawable.tea_pic_nao
+    "escolher" -> R.drawable.tea_pic_escolher
+    "parar" -> R.drawable.tea_pic_parar
+    "oi" -> R.drawable.tea_pic_oi
+    "obrigado" -> R.drawable.tea_pic_obrigado
+    "desculpa" -> R.drawable.tea_pic_desculpa
+    "repetir" -> R.drawable.tea_pic_repetir
     else -> null
 }
 
@@ -105,6 +128,7 @@ private fun faceDrawable(id: String): Int? = when (id) {
 fun ComunicacaoV2Screen(navController: NavHostController) {
     val uid = FirebaseAuth.getInstance().currentUser?.uid
     val context = LocalContext.current
+    val temaVisual = rememberTeaTheme()
     val prefs = remember(context) { context.getSharedPreferences("meutea_fala", 0) }
     var customizados by remember(uid) { mutableStateOf(emptyList<ComunicacaoCard>()) }
     var categoria by remember { mutableStateOf("Tudo") }
@@ -186,115 +210,165 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
         categoria == "Tudo" || it.categoria == categoria
     }
 
-    Scaffold(topBar = {
-        TopAppBar(
-            title = { Text("Minha comunicação") },
-            navigationIcon = {
-                TextButton(onClick = { navController.popBackStack() }) { Text("Voltar") }
-            },
-            actions = { TextButton(onClick = { mostrarVozes = true }) { Text("Voz") } },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
-            )
-        )
-    }) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                shape = RoundedCornerShape(18.dp)
-            ) {
-                Column(Modifier.fillMaxWidth().padding(14.dp)) {
-                    Text("Minha frase", style = MaterialTheme.typography.labelLarge)
+    Box(modifier = Modifier.fillMaxSize()) {
+        TeaWallpaper(temaVisual = temaVisual, modifier = Modifier.fillMaxSize(), tint = 0.06f)
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text("Minha comunicação", color = Color.White,
+                            fontWeight = FontWeight.Bold)
+                    },
+                    navigationIcon = {
+                        TextButton(onClick = { navController.popBackStack() }) {
+                            Text("‹ Voltar", color = Color.White)
+                        }
+                    },
+                    actions = {
+                        TextButton(onClick = { mostrarVozes = true }) {
+                            Text("◖ Voz", color = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xDF093A70)
+                    )
+                )
+            }
+        ) { padding ->
+            Column(Modifier.fillMaxSize().padding(padding)) {
+                Spacer(Modifier.height(18.dp))
+                TeaGlassPanel(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
+                    dark = true
+                ) {
+                    Text("MINHA FRASE", style = MaterialTheme.typography.labelLarge,
+                        color = Color(0xFFC0FFEE), fontWeight = FontWeight.ExtraBold)
+                    Spacer(Modifier.height(5.dp))
                     Text(
                         if (frases.isEmpty()) "Toque nas figuras para se expressar"
                         else frases.joinToString(". "),
+                        color = Color.White,
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        fontWeight = FontWeight.SemiBold
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Spacer(Modifier.height(14.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Button(
                             onClick = { falar(frases.joinToString(". ")) },
-                            enabled = frases.isNotEmpty() && vozDisponivel
-                        ) { Text("Ouvir tudo") }
-                        OutlinedButton(onClick = { frases.clear() }, enabled = frases.isNotEmpty()) {
-                            Text("Limpar")
-                        }
+                            enabled = frases.isNotEmpty() && vozDisponivel,
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFE6F8FF),
+                                contentColor = TeaPalette.ink
+                            )
+                        ) { Text("▶ Ouvir tudo") }
+                        OutlinedButton(
+                            onClick = { frases.clear() },
+                            enabled = frases.isNotEmpty(),
+                            colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                                contentColor = Color.White
+                            ),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.8f))
+                        ) { Text("Limpar") }
                     }
                 }
-            }
-            aviso?.let {
-                Text(it, color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 4.dp))
-            }
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(categorias) { item ->
-                    FilterChip(
-                        selected = categoria == item,
-                        onClick = { categoria = item },
-                        label = { Text(item) }
-                    )
+                aviso?.let {
+                    Text(it, color = Color.White, modifier = Modifier
+                        .padding(horizontal = 17.dp, vertical = 5.dp))
                 }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Toque para falar", style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold)
-                TextButton(onClick = { criar = true }, enabled = uid != null) {
-                    Text("+ Meu cartão")
+                Spacer(Modifier.height(12.dp))
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(categorias) { item ->
+                        FilterChip(
+                            selected = categoria == item,
+                            onClick = { categoria = item },
+                            label = { Text(item) },
+                            colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                                containerColor = Color(0xE8F8FDFF),
+                                labelColor = TeaPalette.ink,
+                                selectedContainerColor = TeaPalette.ocean,
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
                 }
-            }
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 145.dp),
-                contentPadding = PaddingValues(start = 14.dp, end = 14.dp, bottom = 28.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                items(visiveis, key = { it.id }) { item ->
-                    Card(
-                        onClick = {
-                            falar(item.texto)
-                            if (frases.size < 5) frases.add(item.texto)
-                        },
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(horizontal = 17.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Toque para falar",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White)
+                    TextButton(onClick = { criar = true }, enabled = uid != null) {
+                        Text("+ Meu cartão", color = Color.White,
+                            fontWeight = FontWeight.Bold)
+                    }
+                }
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 145.dp),
+                    contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 36.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    items(visiveis, key = { it.id }) { item ->
+                        Card(
+                            onClick = {
+                                falar(item.texto)
+                                if (frases.size < 5) frases.add(item.texto)
+                            },
+                            shape = RoundedCornerShape(21.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xF2E9F9FF)
+                            ),
+                            border = BorderStroke(1.5.dp, Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            val picture = faceDrawable(item.id)
-                            if (picture != null) {
-                                Image(
-                                    painterResource(picture),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(88.dp)
-                                )
-                            } else {
-                                Box(
-                                    modifier = Modifier.size(88.dp).background(
-                                        MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(20.dp)
-                                    ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(item.simbolo, fontSize = 42.sp,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(9.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                val picture = faceDrawable(item.id)
+                                if (picture != null) {
+                                    Image(
+                                        painterResource(picture),
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxWidth().height(109.dp)
+                                    )
+                                } else {
+                                    Box(
+                                        modifier = Modifier.size(94.dp)
+                                            .clip(RoundedCornerShape(20.dp))
+                                            .background(
+                                                Brush.linearGradient(
+                                                    listOf(Color(0xFF8CE9E5), Color(0xFF7FBCEE))
+                                                )
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(item.simbolo, fontSize = 42.sp)
+                                    }
                                 }
-                            }
-                            Spacer(Modifier.height(10.dp))
-                            Text(item.texto, fontWeight = FontWeight.SemiBold,
-                                style = MaterialTheme.typography.bodyLarge,
-                                textAlign = TextAlign.Center)
-                            if (customizados.any { it.id == item.id }) {
-                                TextButton(onClick = { edicao = item }) { Text("Editar cartão") }
+                                Spacer(Modifier.height(7.dp))
+                                Text(
+                                    item.texto,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = TeaPalette.ink,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    textAlign = TextAlign.Center
+                                )
+                                if (customizados.any { it.id == item.id }) {
+                                    TextButton(onClick = { edicao = item }) {
+                                        Text("Editar", color = TeaPalette.ocean)
+                                    }
+                                }
                             }
                         }
                     }
