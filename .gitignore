@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Gradle/Kotlin local build outputs
+.kotlin/
+**/build/
