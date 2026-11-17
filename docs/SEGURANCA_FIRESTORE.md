@@ -43,3 +43,23 @@ service cloud.firestore {
 - [ ] Revisar apresentação da carteirinha como registro informativo, sem alegar emissão oficial.
 
 **Não publicar dados reais em issues, commits, logs ou capturas de tela.**
+
+
+## Atualização para a v2
+
+A versão v2 adiciona as subcoleções `usuarios/{uid}/comunicacao/{cardId}` e
+`usuarios/{uid}/rotinas/{rotinaId}`, com campos controlados. O arquivo
+`firestore.rules` na raiz do repositório é uma **proposta revisável** de regras
+para esse esquema e **não foi implantado** no Firebase.
+
+**Não implantar às cegas.** Verificar as regras atualmente utilizadas e eventuais
+outras coleções. Antes de produção, executar testes no Firebase Emulator Suite:
+
+1. Conta A cria, lê, atualiza e exclui cartões e etapas sob o próprio UID.
+2. Conta A não consegue ler, criar, atualizar nem excluir documentos sob o UID B.
+3. Requisições anônimas são negadas.
+4. Campos desconhecidos, horários inválidos e frases excessivamente longas são negados.
+5. A coleção antiga `Projeto 01.1` não é utilizada pelos novos módulos.
+
+A gravação de dados na nuvem não deve começar em ambiente com informações reais
+sem antes cumprir a revisão de acesso, privacidade e consentimento.
