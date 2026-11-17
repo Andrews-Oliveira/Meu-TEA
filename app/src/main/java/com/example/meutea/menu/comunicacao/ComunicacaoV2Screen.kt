@@ -693,7 +693,12 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
                             FirebaseFirestore.getInstance().collection("usuarios").document(safeUid)
                                 .collection("comunicacao").document(editor.id)
                                 .delete()
-                                .addOnSuccessListener { edicao = null }
+                                .addOnSuccessListener {
+                                    // Cartão removido: apaga também sua voz privada neste aparelho.
+                                    audiosPessoais?.apagar(editor.id)
+                                    revisaoAudio++
+                                    edicao = null
+                                }
                                 .addOnFailureListener { aviso = "Não foi possível excluir o cartão." }
                         }) { Text("Excluir") }
                     }
