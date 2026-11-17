@@ -32,7 +32,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.firestore.FirebaseFirestore
 import android.util.Log
-import kotlinx.coroutines.tasks.await
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,7 +114,7 @@ fun LoginScreen(
                 label = { Text("Email", color = Color.White) },
                 textStyle = TextStyle(color = Color.White),
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.White,
                     unfocusedBorderColor = Color.LightGray,
                     cursorColor = Color.White,
@@ -134,7 +133,7 @@ fun LoginScreen(
                 textStyle = TextStyle(color = Color.White),
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.White,
                     unfocusedBorderColor = Color.LightGray,
                     cursorColor = Color.White,
