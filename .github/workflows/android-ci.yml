@@ -37,4 +37,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Testes, compilacao e lint
-        run: bash ./gradlew --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+        run: bash ./gradlew --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest :app:lintDebug
