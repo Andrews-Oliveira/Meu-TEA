@@ -1,6 +1,7 @@
 package com.example.meutea
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.navigation.compose.rememberNavController
@@ -8,6 +9,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.core.content.ContextCompat
 import com.example.meutea.LoginCadastrar.LoginScreen
+import com.example.meutea.LoginCadastrar.CadastrarScreen
 import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
@@ -32,6 +34,19 @@ class FundosDeTemaInstrumentedTest {
         ).forEach { id ->
             assertNotNull(ContextCompat.getDrawable(context, id))
         }
+    }
+
+    @Test
+    fun cadastroAbreSemFalharComBackgroundXml() {
+        composeTestRule.setContent {
+            val controller = rememberNavController()
+            CadastrarScreen(
+                navController = controller,
+                onBackClicked = {},
+                onCadastrarClicked = { _, _, _ -> }
+            )
+        }
+        composeTestRule.onNodeWithText("Boas vindas!").assertExists()
     }
 
     @Test
