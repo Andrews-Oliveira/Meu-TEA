@@ -23,6 +23,9 @@ import com.example.meutea.menu.conversa.dor.DorScreen
 import com.example.meutea.menu.conversa.emocoes.EmocoesScreen
 import com.example.meutea.menu.conversa.necessidades.NecessidadesScreen
 import com.example.meutea.menu.rotinas.RotinasScreen
+import com.example.meutea.menu.comunicacao.ComunicacaoV2Screen
+import com.example.meutea.menu.jogos.JogosV2Screen
+import com.example.meutea.menu.ciptea.CipteaOrientacaoScreen
 import com.example.meutea.ui.theme.MeuTEATheme
 import com.example.meutea.welcome.WelcomeScreen
 import com.example.meutea.welcome.WelcomeScreen2
@@ -99,6 +102,16 @@ fun SetupNavGraph(navController: NavHostController) {
         composable("editarCarteirinha/{usuarioId}") { backStackEntry ->
             val usuarioId = backStackEntry.arguments?.getString("usuarioId") ?: ""
             CarteirinhaEditScreen(navController = navController, userId = usuarioId)
+        }
+        // Navegação v2 sem romper as rotas antigas, mantidas durante a transição.
+        composable("comunicacaoV2") {
+            ComunicacaoV2Screen(navController)
+        }
+        composable("jogosV2") {
+            JogosV2Screen(navController)
+        }
+        composable("cipteaOrientacao") {
+            CipteaOrientacaoScreen(navController)
         }
         composable(route = "conversaScreen") { // ✅ Nova rota para a tela de conversas
             ConversaScreen(navController = navController)
