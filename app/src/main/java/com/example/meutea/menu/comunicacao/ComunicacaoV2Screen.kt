@@ -1,8 +1,12 @@
 package com.example.meutea.menu.comunicacao
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.speech.tts.TextToSpeech
 import android.speech.tts.Voice
 import androidx.compose.foundation.Image
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,9 +17,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -40,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +70,8 @@ import com.example.meutea.ui.rememberTeaTheme
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.core.content.ContextCompat
+import kotlinx.coroutines.delay
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Locale
@@ -141,6 +151,81 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
     var vozEscolhida by remember { mutableStateOf(prefs.getString("voz", "") ?: "") }
     var ritmoCalmo by remember { mutableStateOf(prefs.getBoolean("ritmo_calmo", true)) }
     var mostrarVozes by remember { mutableStateOf(false) }
+    // A pessoa escolhe explicitamente o estilo da síntese disponível no aparelho.
+    var estiloVoz by remember {
+        mutableStateOf(prefs.getString("estilo_voz", "Serena") ?: "Serena")
+    }
+    // As gravações reais são privadas por UID e independem do mecanismo de TTS.
+    val audiosPessoais = remember(context, uid) {
+        uid?.let { AudioPessoal(context, it) }
+    }
+    var editorAudio by remember(uid) { mutableStateOf<ComunicacaoCard?>(null) }
+    var audioGravando by remember { mutableStateOf(false) }
+    var revisaoAudio by remember(uid) { mutableIntStateOf(0) }
+    var pendentePermissao by remember { mutableStateOf<ComunicacaoCard?>(null) }
+
+    val solicitarMicrofone = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { permitido ->
+        val cartao = pendentePermissao
+        pendentePermissao = null
+        if (permitido && cartao != null) {
+            editorAudio = cartao
+        } else if (!permitido) {
+            aviso = "Microfone não autorizado. Você ainda pode usar as vozes do aparelho."
+        }
+    }
+    val importarArquivo = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        val cartao = editorAudio
+        if (uri != null && cartao != null) {
+            val resultado = audiosPessoais?.importar(cartao.id, uri)
+            if (resultado?.isSuccess == true) {
+                revisaoAudio++
+                aviso = "Áudio importado. Toque no cartão para ouvi-lo."
+            } else {
+                aviso = resultado?.exceptionOrNull()?.localizedMessage
+                    ?: "Não foi possível importar esse áudio."
+            }
+        }
+    }
+
+    DisposableEffect(audiosPessoais) {
+        onDispose { audiosPessoais?.fechar() }
+    }
+
+    // Limite de 15 segundos: gravação só funciona com a tela aberta.
+    LaunchedEffect(audioGravando, editorAudio?.id) {
+        if (audioGravando) {
+            delay(15_000)
+            val resultado = audiosPessoais?.finalizar()
+            audioGravando = false
+            if (resultado?.isSuccess == true) {
+                revisaoAudio++
+                aviso = "Sua voz foi salva neste aparelho."
+            } else {
+                aviso = resultado?.exceptionOrNull()?.localizedMessage
+                    ?: "Não foi possível finalizar a gravação."
+            }
+        }
+    }
+
+    fun abrirEditorAudio(cartao: ComunicacaoCard) {
+        if (uid == null || audiosPessoais == null) {
+            aviso = "Entre na conta para criar suas gravações."
+            return
+        }
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            editorAudio = cartao
+        } else {
+            pendentePermissao = cartao
+            solicitarMicrofone.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
 
     // Libera o motor de fala quando a tela é fechada; não há acesso a voz antes da inicialização.
     DisposableEffect(context) {
@@ -200,9 +285,27 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
             return
         }
         engine?.apply {
-            setSpeechRate(if (ritmoCalmo) 0.88f else 1.0f)
-            setPitch(1.0f)
+            val ritmoBase = if (ritmoCalmo) 0.88f else 1.0f
+            val (ritmo, tom) = when (estiloVoz) {
+                "Animada" -> 1.07f to 1.10f
+                "Grave" -> 0.94f to 0.90f
+                else -> 1.0f to 1.0f
+            }
+            setSpeechRate(ritmoBase * ritmo)
+            setPitch(tom)
             speak(texto, TextToSpeech.QUEUE_FLUSH, null, UUID.randomUUID().toString())
+        }
+    }
+
+    fun reproduzirCartao(item: ComunicacaoCard) {
+        if (audiosPessoais?.existe(item.id) == true) {
+            engine?.stop()
+            if (!audiosPessoais.reproduzir(item.id)) {
+                aviso = "O áudio pessoal não pôde ser reproduzido. Usando a voz do aparelho."
+                falar(item.texto)
+            }
+        } else {
+            falar(item.texto)
         }
     }
 
@@ -320,8 +423,10 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
                     items(visiveis, key = { it.id }) { item ->
                         Card(
                             onClick = {
-                                falar(item.texto)
-                                if (frases.size < 5) frases.add(item.texto)
+                                if (!audioGravando) {
+                                    reproduzirCartao(item)
+                                    if (frases.size < 5) frases.add(item.texto)
+                                }
                             },
                             shape = RoundedCornerShape(21.dp),
                             colors = CardDefaults.cardColors(
@@ -364,9 +469,19 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
                                     style = MaterialTheme.typography.bodyLarge,
                                     textAlign = TextAlign.Center
                                 )
+                                val possuiAudio = revisaoAudio.let {
+                                    audiosPessoais?.existe(item.id) == true
+                                }
+                                TextButton(onClick = { abrirEditorAudio(item) }) {
+                                    Text(
+                                        if (possuiAudio) "🎙 Minha voz ✓" else "🎙 Gravar voz",
+                                        color = TeaPalette.ocean,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                                 if (customizados.any { it.id == item.id }) {
                                     TextButton(onClick = { edicao = item }) {
-                                        Text("Editar", color = TeaPalette.ocean)
+                                        Text("Editar cartão", color = TeaPalette.ocean)
                                     }
                                 }
                             }
@@ -382,8 +497,28 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
             onDismissRequest = { mostrarVozes = false },
             title = { Text("Minha voz") },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Escolha uma voz disponível em português. A idade e o gênero não definem automaticamente a voz de ninguém.")
+                Column(
+                    modifier = Modifier.heightIn(max = 420.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(9.dp)
+                ) {
+                    Text("Sua própria voz: toque em 'Gravar voz' abaixo de um cartão. " +
+                        "A gravação substitui a síntese naquele cartão e funciona sem internet.")
+                    Text("Para frases novas sem gravação, escolha um estilo de voz do Android. " +
+                        "Não são vozes de personagens reais.")
+                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        listOf("Serena", "Animada", "Grave").forEach { modo ->
+                            FilterChip(
+                                selected = estiloVoz == modo,
+                                onClick = {
+                                    estiloVoz = modo
+                                    prefs.edit().putString("estilo_voz", modo).apply()
+                                    falar("Olá! Você pode me ouvir.")
+                                },
+                                label = { Text(modo) }
+                            )
+                        }
+                    }
                     FilterChip(
                         selected = ritmoCalmo,
                         onClick = {
@@ -410,6 +545,101 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
                 }
             },
             confirmButton = { TextButton(onClick = { mostrarVozes = false }) { Text("Concluir") } }
+        )
+    }
+
+    editorAudio?.let { cartao ->
+        val possuiAudio = revisaoAudio.let { audiosPessoais?.existe(cartao.id) == true }
+        AlertDialog(
+            onDismissRequest = {
+                if (!audioGravando) editorAudio = null
+            },
+            title = { Text("Minha voz • " + cartao.texto) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Grave você dizendo esta frase, ou importe um áudio próprio ou autorizado.")
+                    Text(
+                        "“" + cartao.texto + "”",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (audioGravando) {
+                        Text("● GRAVANDO • fale normalmente (máximo de 15 segundos).",
+                            color = Color(0xFFBB3939), fontWeight = FontWeight.Bold)
+                    } else if (possuiAudio) {
+                        Text("Sua gravação está salva. O cartão já usa sua voz.")
+                    } else {
+                        Text("Este cartão ainda usa a voz do Android.")
+                    }
+                    Text(
+                        "Privacidade: o áudio fica apenas neste aparelho, sem envio ao Firebase. " +
+                            "Não é uma clonagem de voz para textos livres.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    if (!audioGravando) {
+                        OutlinedButton(
+                            onClick = { importarArquivo.launch(arrayOf("audio/*")) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("Importar áudio do aparelho") }
+                        if (possuiAudio) {
+                            OutlinedButton(
+                                onClick = {
+                                    engine?.stop()
+                                    if (audiosPessoais?.reproduzir(cartao.id) != true) {
+                                        aviso = "Não foi possível reproduzir a gravação."
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) { Text("▶ Testar gravação") }
+                            TextButton(onClick = {
+                                if (audiosPessoais?.apagar(cartao.id) == true) {
+                                    revisaoAudio++
+                                    aviso = "Gravação excluída. O cartão voltou à voz do Android."
+                                    editorAudio = null
+                                } else {
+                                    aviso = "Não foi possível apagar essa gravação."
+                                }
+                            }) { Text("Excluir gravação") }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (audioGravando) {
+                        val resultado = audiosPessoais?.finalizar()
+                        audioGravando = false
+                        if (resultado?.isSuccess == true) {
+                            revisaoAudio++
+                            aviso = "Sua voz foi salva. Toque no cartão para testar."
+                        } else {
+                            aviso = resultado?.exceptionOrNull()?.localizedMessage
+                                ?: "Não foi possível salvar a gravação."
+                        }
+                    } else {
+                        engine?.stop()
+                        val resultado = audiosPessoais?.iniciar(cartao.id)
+                        if (resultado?.isSuccess == true) {
+                            audioGravando = true
+                        } else {
+                            aviso = resultado?.exceptionOrNull()?.localizedMessage
+                                ?: "Não foi possível acessar o microfone."
+                        }
+                    }
+                }) {
+                    Text(if (audioGravando) "Parar e salvar" else
+                        if (possuiAudio) "Regravar" else "Começar gravação")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    if (audioGravando) {
+                        audiosPessoais?.cancelar()
+                        audioGravando = false
+                    }
+                    editorAudio = null
+                }) { Text("Cancelar") }
+            }
         )
     }
 
