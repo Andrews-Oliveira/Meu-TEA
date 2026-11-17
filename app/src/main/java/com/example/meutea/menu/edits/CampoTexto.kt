@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.example.meutea.ui.TeaPalette
 
 // 🔹 Campo de Texto Formatado (CPF, RG, Data, Telefone)
 @Composable
@@ -27,17 +29,22 @@ fun CustomFormattedTextField(
                 onValueChange(unmaskedValue)
             }
         },
-        label = { Text(label, color = Color.Black) }, // Mantém a cor preta
+        label = { Text(label, color = TeaPalette.ink) }, // Mantém a cor preta
         placeholder = { Text(mask, color = Color.Gray) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         singleLine = true,
+        shape = RoundedCornerShape(16.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.Black,
-            unfocusedBorderColor = Color.Gray,
-            cursorColor = Color.Black
+            focusedBorderColor = TeaPalette.ocean,
+            unfocusedBorderColor = Color(0xFF86AFC7),
+            focusedTextColor = TeaPalette.ink,
+            unfocusedTextColor = TeaPalette.ink,
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White.copy(alpha = 0.97f),
+            cursorColor = TeaPalette.ocean
         )
     )
 }
@@ -74,16 +81,21 @@ fun CustomTextField(label: String, value: String, maxLength: Int, onValueChange:
                 onValueChange(newValue)
             }
         },
-        label = { Text(label, color = Color.Black) },
+        label = { Text(label, color = TeaPalette.ink) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         singleLine = true,
+        shape = RoundedCornerShape(16.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.Black,
-            unfocusedBorderColor = Color.Gray,
-            cursorColor = Color.Black
+            focusedBorderColor = TeaPalette.ocean,
+            unfocusedBorderColor = Color(0xFF86AFC7),
+            focusedTextColor = TeaPalette.ink,
+            unfocusedTextColor = TeaPalette.ink,
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White.copy(alpha = 0.97f),
+            cursorColor = TeaPalette.ocean
         )
     )
 }
@@ -108,6 +120,15 @@ fun DropdownMenuField(
             readOnly = true,
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            shape = RoundedCornerShape(16.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedTextColor = TeaPalette.ink,
+                unfocusedTextColor = TeaPalette.ink,
+                focusedBorderColor = TeaPalette.ocean,
+                unfocusedBorderColor = Color(0xFF86AFC7)
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor()

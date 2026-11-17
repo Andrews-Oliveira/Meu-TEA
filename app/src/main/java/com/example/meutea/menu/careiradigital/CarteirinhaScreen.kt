@@ -11,6 +11,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import com.example.meutea.ui.TeaGlassPanel
+import com.example.meutea.ui.TeaPalette
+import com.example.meutea.ui.TeaWallpaper
+import com.example.meutea.ui.rememberTeaTheme
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -72,6 +77,7 @@ fun CarteirinhaScreen(navController: NavController, usuarioId: String) {
     var isLoading by remember { mutableStateOf(false) }
 
     val db = FirebaseFirestore.getInstance()
+    val temaVisual = rememberTeaTheme()
 
     fun validarCampos(): Boolean {
         if (nome.isBlank() || cpf.length != 11 || rg.length !in 7..9 || nascimento.length != 8 ||
@@ -129,18 +135,26 @@ fun CarteirinhaScreen(navController: NavController, usuarioId: String) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
 
+    Box(Modifier.fillMaxSize()) {
+        TeaWallpaper(temaVisual = temaVisual, modifier = Modifier.fillMaxSize(), tint = 0.05f)
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Cadastro da Carteirinha", color = Color.White) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0072CE))
+                title = { Text("Minha identificação", color = Color.White, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    TextButton(onClick = { navController.popBackStack() }) {
+                        Text("‹ Voltar", color = Color.White)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xDD0A396C))
             )
         }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(Color.Transparent)
                 .padding(paddingValues)
         ) {
             Column(
@@ -150,11 +164,33 @@ fun CarteirinhaScreen(navController: NavController, usuarioId: String) {
                     .padding(horizontal = screenWidth * 0.05f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(Modifier.height(54.dp))
+                TeaGlassPanel(dark = true, modifier = Modifier.fillMaxWidth()) {
+                    Text("Seus dados, do seu jeito", color = Color.White,
+                        style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Crie uma identificação pessoal para consultas rápidas. " +
+                            "Este registro não substitui a CIPTEA oficial.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White
+                    )
+                }
+                Spacer(Modifier.height(18.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xF7F4FAFF)),
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
+                    Text(
+                        "INFORMAÇÕES PARA IDENTIFICAÇÃO",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = TeaPalette.ocean,
+                        modifier = Modifier.padding(start = 18.dp, top = 16.dp)
+                    )
                     Column(modifier = Modifier.padding(16.dp)) {
                         com.example.meutea.menu.CustomTextField("Nome Completo", nome, 50) {
                             nome = it
@@ -208,7 +244,7 @@ fun CarteirinhaScreen(navController: NavController, usuarioId: String) {
 
                 // 🔹 Exibir mensagem de erro se houver
                 errorMessage?.let {
-                    Text(it, color = Color.Red, fontSize = 14.sp)
+                    Text(it, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
@@ -239,6 +275,8 @@ fun CarteirinhaScreen(navController: NavController, usuarioId: String) {
             }
 
         }
+
+    }
 
     }
 

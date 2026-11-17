@@ -1,6 +1,15 @@
 package com.example.meutea.menu.rotinas
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import androidx.compose.animation.animateContentSize
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -9,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,6 +50,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.meutea.R
+import com.example.meutea.ui.TeaGlassPanel
+import com.example.meutea.ui.TeaPalette
+import com.example.meutea.ui.TeaWallpaper
+import com.example.meutea.ui.rememberTeaTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
@@ -57,6 +72,24 @@ data class AtividadeDiaria(
 )
 
 private val periodos = listOf("Manhã", "Tarde", "Noite")
+
+private fun imagemDaRotina(titulo: String): Int {
+    val value = titulo.lowercase(Locale.ROOT)
+    return when {
+        "café" in value || "almo" in value || "lanche" in value || "jantar" in value ->
+            R.drawable.tea_pic_comer
+        "higiene" in value || "banho" in value || "dente" in value ->
+            R.drawable.tea_pic_banheiro
+        "acordar" in value || "dormir" in value || "descanso" in value ->
+            R.drawable.tea_pic_cansaco
+        "pausa" in value || "tranquilo" in value ->
+            R.drawable.tea_pic_pausa
+        "atividade" in value || "brincar" in value ->
+            R.drawable.tea_pic_feliz
+        else -> R.drawable.tea_pic_escolher
+    }
+}
+
 
 private val sugestoes = listOf(
     AtividadeDiaria(titulo = "Acordar com calma", horario = "07:00", periodo = "Manhã"),
@@ -87,6 +120,7 @@ internal fun horarioValido(value: String): Boolean {
 @Composable
 fun RotinasScreen(navController: NavHostController) {
     val uid = FirebaseAuth.getInstance().currentUser?.uid
+    val temaVisual = rememberTeaTheme()
     var atividades by remember(uid) { mutableStateOf(emptyList<AtividadeDiaria>()) }
     var periodo by remember { mutableStateOf("Manhã") }
     var carregando by remember { mutableStateOf(true) }
@@ -124,122 +158,250 @@ fun RotinasScreen(navController: NavHostController) {
     val concluidas = filtradas.count { it.concluidaEm == diaAtual }
     val proporcao = if (filtradas.isEmpty()) 0f else concluidas.toFloat() / filtradas.size
 
-    Scaffold(topBar = {
-        TopAppBar(
-            title = { Text("Minha rotina") },
-            navigationIcon = { TextButton(onClick = { navController.popBackStack() }) { Text("Voltar") } },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
-        )
-    }) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                Text(
-                    "O dia no seu ritmo",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    "Escolha, adapte ou remova cada etapa. Não existe uma rotina única para todas as pessoas.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+    Box(Modifier.fillMaxSize()) {
+        TeaWallpaper(temaVisual = temaVisual, modifier = Modifier.fillMaxSize(), tint = 0.04f)
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text("Minha rotina", color = Color.White,
+                        fontWeight = FontWeight.Bold) },
+                    navigationIcon = {
+                        TextButton(onClick = { navController.popBackStack() }) {
+                            Text("‹ Voltar", color = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xDF093A70)
+                    )
                 )
             }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    periodos.forEach { item ->
-                        FilterChip(
-                            selected = periodo == item,
-                            onClick = { periodo = item },
-                            label = { Text(item) }
+        ) { padding ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 92.dp),
+                verticalArrangement = Arrangement.spacedBy(13.dp)
+            ) {
+                item {
+                    TeaGlassPanel(dark = true, modifier = Modifier.fillMaxWidth()) {
+                        Text("O dia no seu ritmo",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.ExtraBold)
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "Escolha, adapte ou remova cada etapa. A rotina acompanha suas necessidades.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White
                         )
                     }
                 }
-            }
-            item {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    shape = RoundedCornerShape(18.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(periodo + " • " + concluidas + " de " + filtradas.size + " concluídas",
-                            style = MaterialTheme.typography.titleMedium)
-                        Spacer(Modifier.height(10.dp))
-                        LinearProgressIndicator(
-                            progress = { proporcao },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        if (filtradas.isNotEmpty() && concluidas == filtradas.size) {
-                            Text("Você escolheu e concluiu suas atividades de hoje. Muito bem!",
-                                modifier = Modifier.padding(top = 8.dp))
+                item {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xDA0A7AB1)),
+                        shape = RoundedCornerShape(25.dp),
+                        border = BorderStroke(1.5.dp, Color.White),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(8.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            periodos.forEach { item ->
+                                val ativo = periodo == item
+                                val emoji = when (item) {
+                                    "Manhã" -> "☀"
+                                    "Tarde" -> "◕"
+                                    else -> "☾"
+                                }
+                                FilterChip(
+                                    selected = ativo,
+                                    onClick = { periodo = item },
+                                    label = {
+                                        Text("$emoji $item",
+                                            fontWeight = FontWeight.Bold)
+                                    },
+                                    colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                                        containerColor = Color.Transparent,
+                                        labelColor = Color.White,
+                                        selectedContainerColor = Color(0xFFF0FAFF),
+                                        selectedLabelColor = TeaPalette.ink
+                                    ),
+                                    border = BorderStroke(1.dp,
+                                        if (ativo) Color.White else Color(0xFF7ADEFF))
+                                )
+                            }
                         }
                     }
                 }
-            }
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Button(onClick = { criar = true }, enabled = uid != null) { Text("+ Nova etapa") }
-                    OutlinedButton(
-                        onClick = {
-                            val currentUid = uid ?: return@OutlinedButton
-                            val path = FirebaseFirestore.getInstance().collection("usuarios")
-                                .document(currentUid).collection("rotinas")
-                            val toCreate = sugestoes.filter { suggestion ->
-                                atividades.none {
-                                    it.titulo == suggestion.titulo && it.periodo == suggestion.periodo
-                                }
-                            }
-                            if (toCreate.isEmpty()) {
-                                erro = "As sugestões já foram adicionadas. Você pode personalizá-las."
-                            } else {
-                                salvandoModelos = true
-                                val batch = FirebaseFirestore.getInstance().batch()
-                                toCreate.forEach { suggestion ->
-                                    val ref = path.document()
-                                    batch.set(ref, suggestion.copy(id = ref.id))
-                                }
-                                batch.commit()
-                                    .addOnFailureListener { erro = "Falha ao salvar sugestões." }
-                                    .addOnCompleteListener { salvandoModelos = false }
-                            }
-                        },
-                        enabled = uid != null && !salvandoModelos
-                    ) { Text("Usar sugestões") }
-                }
-            }
-            if (carregando) {
-                item { Text("Carregando sua rotina...") }
-            }
-            erro?.let { msg ->
-                item { Text(msg, color = MaterialTheme.colorScheme.error) }
-            }
-            if (!carregando && filtradas.isEmpty()) {
                 item {
-                    Text(
-                        "Nenhuma etapa nesta parte do dia. Crie uma atividade ou escolha sugestões editáveis.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(vertical = 16.dp)
-                    )
-                }
-            }
-            items(filtradas, key = { it.id }) { atividade ->
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Column(Modifier.fillMaxWidth().padding(12.dp)) {
+                    TeaGlassPanel(modifier = Modifier.fillMaxWidth()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier.size(64.dp)
+                                    .clip(RoundedCornerShape(17.dp))
+                                    .background(
+                                        Brush.linearGradient(
+                                            listOf(Color(0xFF008BB8), Color(0xFF36C9CD))
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(if (periodo == "Manhã") "☀" else
+                                    if (periodo == "Tarde") "◕" else "☾",
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.headlineMedium)
+                            }
+                            Spacer(Modifier.size(13.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("$periodo • $concluidas de ${filtradas.size} concluídas",
+                                    color = TeaPalette.ink,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    style = MaterialTheme.typography.titleMedium)
+                                Spacer(Modifier.height(10.dp))
+                                LinearProgressIndicator(
+                                    progress = { proporcao },
+                                    modifier = Modifier.fillMaxWidth().height(10.dp)
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    color = TeaPalette.teal,
+                                    trackColor = Color(0xFFB9D9EB)
+                                )
+                            }
+                        }
+                        if (filtradas.isNotEmpty() && concluidas == filtradas.size) {
+                            Text("Você concluiu as etapas de hoje. Muito bem!",
+                                modifier = Modifier.padding(top = 10.dp),
+                                color = TeaPalette.ink,
+                                fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Button(
+                            onClick = { criar = true },
+                            enabled = uid != null,
+                            modifier = Modifier.weight(1f).height(52.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = TeaPalette.teal
+                            )
+                        ) { Text("+ Nova etapa", fontWeight = FontWeight.Bold) }
+                        OutlinedButton(
+                            onClick = {
+                                val currentUid = uid ?: return@OutlinedButton
+                                val path = FirebaseFirestore.getInstance().collection("usuarios")
+                                    .document(currentUid).collection("rotinas")
+                                val toCreate = sugestoes.filter { suggestion ->
+                                    atividades.none {
+                                        it.titulo == suggestion.titulo &&
+                                            it.periodo == suggestion.periodo
+                                    }
+                                }
+                                if (toCreate.isEmpty()) {
+                                    erro = "As sugestões já foram adicionadas. Edite conforme necessário."
+                                } else {
+                                    salvandoModelos = true
+                                    val batch = FirebaseFirestore.getInstance().batch()
+                                    toCreate.forEach { suggestion ->
+                                        val ref = path.document()
+                                        batch.set(ref, suggestion.copy(id = ref.id))
+                                    }
+                                    batch.commit()
+                                        .addOnFailureListener {
+                                            erro = "Não foi possível adicionar sugestões."
+                                        }
+                                        .addOnCompleteListener { salvandoModelos = false }
+                                }
+                            },
+                            enabled = uid != null && !salvandoModelos,
+                            modifier = Modifier.weight(1f).height(52.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color(0xEFF7FCFF),
+                                contentColor = TeaPalette.ink
+                            ),
+                            border = BorderStroke(1.3.dp, Color.White)
+                        ) { Text("✦ Sugestões", fontWeight = FontWeight.Bold) }
+                    }
+                }
+                if (carregando) {
+                    item {
+                        Text("Carregando suas atividades...",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+                erro?.let { msg ->
+                    item {
+                        TeaGlassPanel(modifier = Modifier.fillMaxWidth()) {
+                            Text(msg, color = TeaPalette.ink)
+                        }
+                    }
+                }
+                if (!carregando && filtradas.isEmpty()) {
+                    item {
+                        TeaGlassPanel(modifier = Modifier.fillMaxWidth()) {
+                            Text("Nenhuma etapa neste período.",
+                                color = TeaPalette.ink,
+                                fontWeight = FontWeight.ExtraBold)
+                            Text("Crie uma etapa pessoal ou use sugestões para começar.",
+                                color = TeaPalette.ink)
+                        }
+                    }
+                }
+                items(filtradas, key = { it.id }) { atividade ->
+                    val marcada = atividade.concluidaEm == diaAtual
+                    Card(
+                        shape = RoundedCornerShape(22.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (marcada)
+                                Color(0xF2D8F8E9) else Color(0xF3EAF8FF)
+                        ),
+                        border = BorderStroke(1.4.dp, Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        modifier = Modifier.fillMaxWidth().animateContentSize()
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier.size(76.dp)
+                                    .clip(RoundedCornerShape(17.dp))
+                                    .background(Color(0xFFA9E9EC)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(imagemDaRotina(atividade.titulo)),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(70.dp)
+                                )
+                            }
+                            Spacer(Modifier.size(10.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    atividade.titulo,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = TeaPalette.ink,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    textDecoration = if (marcada)
+                                        TextDecoration.LineThrough else TextDecoration.None
+                                )
+                                Spacer(Modifier.height(5.dp))
+                                Text("◷ " + atividade.horario,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color(0xFF135B9A),
+                                    fontWeight = FontWeight.Bold)
+                                Row {
+                                    TextButton(onClick = { editar = atividade }) {
+                                        Text("Editar", color = TeaPalette.ocean)
+                                    }
+                                    TextButton(onClick = { excluir = atividade }) {
+                                        Text("Excluir", color = Color(0xFFAF3F55))
+                                    }
+                                }
+                            }
                             Checkbox(
-                                checked = atividade.concluidaEm == diaAtual,
+                                checked = marcada,
                                 onCheckedChange = { marcado ->
                                     val currentUid = uid ?: return@Checkbox
                                     FirebaseFirestore.getInstance().collection("usuarios")
@@ -249,31 +411,24 @@ fun RotinasScreen(navController: NavHostController) {
                                         .addOnFailureListener {
                                             erro = "Não foi possível atualizar a etapa."
                                         }
-                                }
-                            )
-                            Column(Modifier.weight(1f)) {
-                                Text(
-                                    atividade.titulo,
-                                    fontWeight = FontWeight.SemiBold,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    textDecoration = if (atividade.concluidaEm == diaAtual)
-                                        TextDecoration.LineThrough else TextDecoration.None
+                                },
+                                colors = androidx.compose.material3.CheckboxDefaults.colors(
+                                    checkedColor = TeaPalette.teal
                                 )
-                                Text(atividade.horario, style = MaterialTheme.typography.bodyMedium)
-                            }
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            TextButton(onClick = { editar = atividade }) { Text("Editar") }
-                            TextButton(onClick = { excluir = atividade }) { Text("Excluir") }
+                            )
                         }
                     }
                 }
-            }
-            item {
-                Spacer(Modifier.height(18.dp))
-                Text("As conclusões são reiniciadas a cada dia. As atividades permanecem salvas.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                item {
+                    TeaGlassPanel(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "A conclusão é marcada por dia. Suas etapas permanecem salvas.",
+                            color = TeaPalette.ink,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+                item { Spacer(Modifier.height(20.dp)) }
             }
         }
     }

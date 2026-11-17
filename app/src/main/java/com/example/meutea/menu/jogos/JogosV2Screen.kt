@@ -1,6 +1,13 @@
 package com.example.meutea.menu.jogos
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.graphics.Color
+import com.example.meutea.ui.TeaWallpaper
+import com.example.meutea.ui.TeaPalette
+import com.example.meutea.ui.TeaGlassPanel
+import com.example.meutea.ui.rememberTeaTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -49,8 +56,8 @@ private data class Desafio(
 
 // Atividade lúdica: não diagnostica nem avalia desenvolvimento.
 private val desafios = listOf(
-    Desafio(R.drawable.tea_feliz, "Observe a expressão", "Feliz", listOf("Feliz", "Triste", "Com medo")),
-    Desafio(R.drawable.tea_triste, "Observe a expressão", "Triste", listOf("Feliz", "Triste", "Com raiva")),
+    Desafio(R.drawable.tea_pic_feliz, "Observe a expressão", "Feliz", listOf("Feliz", "Triste", "Com medo")),
+    Desafio(R.drawable.tea_pic_triste, "Observe a expressão", "Triste", listOf("Feliz", "Triste", "Com raiva")),
     Desafio(R.drawable.tea_medo, "Observe a expressão", "Com medo", listOf("Com medo", "Feliz", "Triste")),
     Desafio(R.drawable.tea_raiva, "Observe a expressão", "Com raiva", listOf("Feliz", "Com medo", "Com raiva"))
 )
@@ -63,38 +70,55 @@ fun JogosV2Screen(navController: NavHostController) {
     var escolha by remember(modo, indice) { mutableStateOf<String?>(null) }
     var etapa by remember(modo) { mutableIntStateOf(0) }
     val desafio = desafios[indice]
+    val temaVisual = rememberTeaTheme()
 
-    Scaffold(topBar = {
-        TopAppBar(
-            title = { Text("Jogos tranquilos") },
-            navigationIcon = {
-                TextButton(onClick = { navController.popBackStack() }) { Text("Voltar") }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
+    Box(Modifier.fillMaxSize()) {
+        TeaWallpaper(temaVisual = temaVisual, modifier = Modifier.fillMaxSize(), tint = 0.04f)
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            TopAppBar(
+                title = { Text("Jogos tranquilos", color = Color.White, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    TextButton(onClick = { navController.popBackStack() }) {
+                        Text("‹ Voltar", color = Color.White)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xDD0A396C)
+                )
             )
-        )
-    }) { padding ->
+        }
+    ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(18.dp),
+            contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 90.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Text("Explorar sem pressa",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold)
-                Text(
-                    "Aqui não há pontos nem penalidades. Você pode fazer uma pausa a qualquer momento.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                TeaGlassPanel(dark = true, modifier = Modifier.fillMaxWidth()) {
+                    Text("Explorar sem pressa",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White)
+                    Text(
+                        "Aqui não há pontos nem penalidades. Você pode parar a qualquer momento.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White
+                    )
+                }
             }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     listOf("Emoções", "Pausa").forEach { tab ->
                         FilterChip(selected = modo == tab, onClick = { modo = tab },
-                            label = { Text(tab) })
+                            label = { Text(tab) },
+                            colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                                containerColor = Color(0xE7F7FDFF),
+                                selectedContainerColor = Color(0xFF00A5B3),
+                                selectedLabelColor = Color.White,
+                                labelColor = TeaPalette.ink
+                            ))
                     }
                 }
             }
@@ -104,7 +128,7 @@ fun JogosV2Screen(navController: NavHostController) {
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(22.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                            containerColor = Color(0xF4EAF8FF)
                         )
                     ) {
                         Column(
@@ -117,7 +141,7 @@ fun JogosV2Screen(navController: NavHostController) {
                             Image(
                                 painter = painterResource(desafio.figura),
                                 contentDescription = "Desenho de uma expressão facial",
-                                modifier = Modifier.size(160.dp)
+                                modifier = Modifier.size(190.dp)
                             )
                             Spacer(Modifier.height(14.dp))
                             Text("Qual palavra combina com a expressão?",
@@ -131,8 +155,14 @@ fun JogosV2Screen(navController: NavHostController) {
                         desafio.opcoes.forEach { opcao ->
                             OutlinedButton(
                                 onClick = { escolha = opcao },
-                                enabled = escolha == null,
-                                modifier = Modifier.fillMaxWidth().height(56.dp)
+                                modifier = Modifier.fillMaxWidth().height(60.dp),
+                                border = BorderStroke(1.5.dp, Color.White),
+                                colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                                    containerColor = if (escolha == opcao)
+                                        Color(0xFF00A5B3) else Color(0xF2F3FBFF),
+                                    contentColor = if (escolha == opcao)
+                                        Color.White else TeaPalette.ink
+                                )
                             ) { Text(opcao) }
                         }
                     }
@@ -141,7 +171,7 @@ fun JogosV2Screen(navController: NavHostController) {
                     item {
                         Card(
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                containerColor = Color(0xF1E4F0FE)
                             )
                         ) {
                             Column(Modifier.fillMaxWidth().padding(16.dp)) {
@@ -204,4 +234,6 @@ fun JogosV2Screen(navController: NavHostController) {
             }
         }
     }
+    }
+
 }
