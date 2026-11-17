@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Solicitada só quando a pessoa escolhe gravar a própria voz. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- Descoberta do sintetizador de voz em Android 11+ -->
     <queries>
