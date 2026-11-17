@@ -1,7 +1,7 @@
 package com.example.meutea.LoginCadastrar
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
+import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -31,11 +31,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -68,14 +66,17 @@ fun CadastrarScreen(
     val dataSource = DataSource()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Imagem de fundo com o efeito de blur
-        Image(
-            painter = painterResource(id = R.drawable.tea_background_login),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(20.dp),
-            contentScale = ContentScale.Crop
+        // O fallback é XML <shape>; ImageView também aceita PNG/WebP.
+        // Não usar painterResource() para este fundo.
+        AndroidView(
+            factory = { imageContext ->
+                ImageView(imageContext).apply {
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                    setImageResource(R.drawable.tea_background_login)
+                    importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                }
+            },
+            modifier = Modifier.fillMaxSize()
         )
 
         // Camada escura com fundo borrado
