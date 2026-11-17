@@ -18,8 +18,7 @@ import androidx.navigation.NavController
 import com.example.meutea.menu.CustomFormattedTextField
 import com.example.meutea.menu.DropdownMenuField
 import com.google.firebase.firestore.SetOptions
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
 // 🔹 Lista de Estados do Brasil
 val estadosDoBrasil = listOf(
     "Selecione",
@@ -72,7 +71,7 @@ fun CarteirinhaScreen(navController: NavController, usuarioId: String) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
-    val db = Firebase.firestore
+    val db = FirebaseFirestore.getInstance()
 
     fun validarCampos(): Boolean {
         if (nome.isBlank() || cpf.length != 11 || rg.length !in 7..9 || nascimento.length != 8 ||
