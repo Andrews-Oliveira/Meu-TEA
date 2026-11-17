@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, fix/fluxos-essenciais-meu-tea-20261117]
   push:
     branches: [main]
 
