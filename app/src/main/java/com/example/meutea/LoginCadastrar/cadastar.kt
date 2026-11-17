@@ -211,8 +211,9 @@ fun CadastrarScreen(
                                         withContext(Dispatchers.Main) {
                                             Toast.makeText(context, "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show()
                                             onCadastrarClicked(nome.value, email.value, senha.value)
-                                            navController.popBackStack() // Volta para a tela anterior
                                         }
+                                    } else {
+                                        Toast.makeText(context, "Não foi possível criar a conta. Confira os dados e tente novamente.", Toast.LENGTH_LONG).show()
                                     }
                                 } catch (e: Exception) {
                                     withContext(Dispatchers.Main) {
