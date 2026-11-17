@@ -4,8 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,20 +25,18 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
-    var userId by remember { mutableStateOf<String?>(null) }
-    var drawerState = rememberDrawerState(DrawerValue.Closed)
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    // Buscar o ID do usuário no Firestore
-    LaunchedEffect(Unit) {
-        FirebaseFirestore.getInstance().collection("usuarios")
-            .limit(1)
-            .get()
-            .addOnSuccessListener { documents ->
-                if (!documents.isEmpty) {
-                    userId = documents.documents[0].id
-                }
+    // Não consultar usuários arbitrários: o perfil da sessão deve corresponder à rota.
+    LaunchedEffect(usuarioId) {
+        if (FirebaseAuth.getInstance().currentUser?.uid != usuarioId) {
+            navController.navigate("loginScreen") {
+                popUpTo("welcomeScreen") { inclusive = true }
+                launchSingleTop = true
             }
+        }
     }
 
     ModalNavigationDrawer(
@@ -62,7 +58,7 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                     },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                            Icon(painterResource(R.drawable.ic_menu_24), contentDescription = "Menu", tint = Color.White)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0072CE))
@@ -113,6 +109,7 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                         iconId = R.drawable.outline_person_24,
                         color = Color(0xFF2F9ACC),
                         onClick = {
+                            errorMessage = null
                             FirebaseFirestore.getInstance().collection("usuarios").document(usuarioId)
                                 .get()
                                 .addOnSuccessListener { document ->
@@ -122,6 +119,9 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                                         navController.navigate("carteirinhaScreen/$usuarioId")
                                     }
                                 }
+                                .addOnFailureListener {
+                                    errorMessage = "Não foi possível carregar a carteirinha. Verifique sua conexão."
+                                }
                         }
                     )
 
@@ -129,8 +129,17 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                         text = "CONVERSA",
                         iconId = R.drawable.baseline_chat_24,
                         color = Color(0xFF48AC51),
-                        onClick = { navController.navigate("ConversaScreen") } // ✅ Agora leva para a tela de conversas
+                        onClick = { navController.navigate("conversaScreen") } // ✅ Agora leva para a tela de conversas
                     )
+
+                    errorMessage?.let { mensagem ->
+                        Text(
+                            text = mensagem,
+                            color = Color.White,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+                    }
 
 //                    MenuButton(
 //                        text = "ROTINA",
@@ -167,7 +176,8 @@ fun DrawerContent(navController: NavController, drawerState: DrawerState) {
             onClick = {
                 FirebaseAuth.getInstance().signOut()
                 navController.navigate("loginScreen") {
-                    popUpTo("menuPrincipalScreen") { inclusive = true }
+                    popUpTo("welcomeScreen") { inclusive = true }
+                    launchSingleTop = true
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Red),

@@ -143,7 +143,7 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
 
                                             // 🔹 Voltar para a tela de visualização da carteirinha
                                             navController.navigate("carteirinhaViewScreen/$userId") {
-                                                popUpTo("carteirinhaEditScreen/$userId") { inclusive = true }
+                                                popUpTo("editarCarteirinha/{usuarioId}") { inclusive = true }
                                             }
                                         } catch (e: Exception) {
                                             errorMessage = "Erro ao salvar alterações: ${e.message}"
@@ -174,7 +174,7 @@ fun CustomTextField(label: String, value: String, onValueChange: (String) -> Uni
         onValueChange = onValueChange,
         label = { Text(label, color = Color.Black) },
         textStyle = TextStyle(color = Color.Black),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
+        colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color.Gray,
             unfocusedBorderColor = Color.LightGray,
             cursorColor = Color.Black

@@ -18,7 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -146,7 +146,7 @@ fun CadastrarScreen(
                     onValueChange = { nome.value = it },
                     label = { Text("Nome", color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color.White,
                         unfocusedBorderColor = Color.LightGray,
                         cursorColor = Color.White,
@@ -165,7 +165,7 @@ fun CadastrarScreen(
                     onValueChange = { email.value = it },
                     label = { Text("Email", color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color.White,
                         unfocusedBorderColor = Color.LightGray,
                         cursorColor = Color.White,
@@ -185,7 +185,7 @@ fun CadastrarScreen(
                     label = { Text("Senha", color = Color.White) },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color.White,
                         unfocusedBorderColor = Color.LightGray,
                         cursorColor = Color.White,
@@ -211,8 +211,9 @@ fun CadastrarScreen(
                                         withContext(Dispatchers.Main) {
                                             Toast.makeText(context, "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show()
                                             onCadastrarClicked(nome.value, email.value, senha.value)
-                                            navController.popBackStack() // Volta para a tela anterior
                                         }
+                                    } else {
+                                        Toast.makeText(context, "Não foi possível criar a conta. Confira os dados e tente novamente.", Toast.LENGTH_LONG).show()
                                     }
                                 } catch (e: Exception) {
                                     withContext(Dispatchers.Main) {

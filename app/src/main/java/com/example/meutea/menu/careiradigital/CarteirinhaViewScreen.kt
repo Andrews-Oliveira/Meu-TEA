@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
 import kotlinx.coroutines.tasks.await
 import com.example.meutea.R
 import com.example.meutea.models.Usuario
@@ -28,6 +29,7 @@ fun CarteirinhaViewScreen(navController: NavController, userId: String?) {
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var deleteErrorMessage by remember { mutableStateOf<String?>(null) }
 
     val db = FirebaseFirestore.getInstance()
 
@@ -40,10 +42,10 @@ fun CarteirinhaViewScreen(navController: NavController, userId: String?) {
 
         try {
             val document = db.collection("usuarios").document(userId).get().await()
-            if (document.exists()) {
+            if (document.exists() && document.getBoolean("carteira_digital") == true) {
                 usuario = document.toObject(Usuario::class.java)
             } else {
-                errorMessage = "Carteirinha não encontrada!"
+                errorMessage = "Carteirinha ainda não cadastrada."
             }
         } catch (e: Exception) {
             errorMessage = "Erro ao buscar dados: ${e.message}"
@@ -111,13 +113,13 @@ fun CarteirinhaViewScreen(navController: NavController, userId: String?) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(
-                                    text = "CIPTEA",
+                                    text = "Carteirinha pessoal",
                                     fontSize = 28.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
                                 )
                                 Text(
-                                    text = "Carteira de Identificação da Pessoa com Transtorno do Espectro Autista",
+                                    text = "Registro interno do MeuTEA — não substitui a CIPTEA emitida pelo órgão competente.",
                                     fontSize = 14.sp,
                                     color = Color.White
                                 )
@@ -155,7 +157,7 @@ fun CarteirinhaViewScreen(navController: NavController, userId: String?) {
                                 .padding(12.dp)
                         ) {
                             Text(
-                                text = "ATENDIMENTO PRIORITÁRIO",
+                                text = "IDENTIFICAÇÃO PESSOAL — NÃO OFICIAL",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,
@@ -189,6 +191,10 @@ fun CarteirinhaViewScreen(navController: NavController, userId: String?) {
                             }
                         }
 
+                        deleteErrorMessage?.let { mensagem ->
+                            Text(mensagem, color = Color.White)
+                        }
+
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Button(
@@ -218,11 +224,37 @@ fun CarteirinhaViewScreen(navController: NavController, userId: String?) {
                 Button(
                     onClick = {
                         showDeleteDialog = false
-                        userId?.let {
-                            db.collection("usuarios").document(it).delete()
-                            navController.navigate("menuPrincipalScreen/$userId") {
-                                popUpTo("carteirinhaViewScreen/$userId") { inclusive = true }
-                            }
+                        userId?.let { id ->
+                            isLoading = true
+                            deleteErrorMessage = null
+                            // Nunca apagar o documento da conta: excluir só os campos da carteirinha.
+                            val limpeza = mapOf(
+                                "carteira_digital" to false,
+                                "cpf" to FieldValue.delete(),
+                                "rg" to FieldValue.delete(),
+                                "nascimento" to FieldValue.delete(),
+                                "genero" to FieldValue.delete(),
+                                "tipoSanguineo" to FieldValue.delete(),
+                                "telefone" to FieldValue.delete(),
+                                "endereco" to FieldValue.delete(),
+                                "estado" to FieldValue.delete(),
+                                "cid" to FieldValue.delete(),
+                                "naturalidade" to FieldValue.delete(),
+                                "estadoCivil" to FieldValue.delete()
+                            )
+                            db.collection("usuarios").document(id).update(limpeza)
+                                .addOnSuccessListener {
+                                    navController.navigate("menuPrincipalScreen/$id") {
+                                        popUpTo("carteirinhaViewScreen/{usuarioId}") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    deleteErrorMessage = "Não foi possível excluir a carteirinha. Tente novamente."
+                                }
+                                .addOnCompleteListener {
+                                    isLoading = false
+                                }
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)

@@ -26,6 +26,7 @@ import com.example.meutea.menu.rotinas.RotinasScreen
 import com.example.meutea.ui.theme.MeuTEATheme
 import com.example.meutea.welcome.WelcomeScreen
 import com.example.meutea.welcome.WelcomeScreen2
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,9 +59,7 @@ fun SetupNavGraph(navController: NavHostController) {
             LoginScreen(
                 navController = navController,
                 onBackClicked = { navController.popBackStack() },
-                onContinuarClicked = { email, senha, lembrarMe ->
-                    println("Login com: $email, $senha, Lembrar-me: $lembrarMe")
-                },
+                onContinuarClicked = { _, _, _ -> },
                 onCadastrarClicked = { navController.navigate("cadastrarScreen") }
             )
         }
@@ -69,10 +68,12 @@ fun SetupNavGraph(navController: NavHostController) {
             CadastrarScreen(
                 navController = navController,
                 onBackClicked = { navController.popBackStack() },
-                onCadastrarClicked = { nome, email, senha ->
-                    println("Usuário cadastrado: $nome, $email")
-                    navController.navigate("menuPrincipalScreen/{usuarioId}") {
-                        popUpTo("cadastrarScreen") { inclusive = true }
+                onCadastrarClicked = { _, _, _ ->
+                    FirebaseAuth.getInstance().currentUser?.uid?.let { usuarioId ->
+                        navController.navigate("menuPrincipalScreen/$usuarioId") {
+                            popUpTo("cadastrarScreen") { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
                 }
             )
