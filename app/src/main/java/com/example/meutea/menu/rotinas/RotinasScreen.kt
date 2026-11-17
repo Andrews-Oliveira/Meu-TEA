@@ -178,7 +178,7 @@ fun RotinasScreen(navController: NavHostController) {
         ) { padding ->
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 18.dp),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 92.dp),
                 verticalArrangement = Arrangement.spacedBy(13.dp)
             ) {
                 item {
