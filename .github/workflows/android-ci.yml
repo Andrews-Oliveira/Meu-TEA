@@ -4,9 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches:
-      - main
-      - fix/fluxos-essenciais-meu-tea-20261117
+    branches: [main]
 
 permissions:
   contents: read
@@ -29,7 +27,7 @@ jobs:
         uses: android-actions/setup-android@v4
 
       - name: Instalar plataforma Android 17
-        run: sdkmanager --install "platforms;android-37" "build-tools;36.0.0"
+        run: sdkmanager --install "platforms;android-37.0" "build-tools;36.0.0"
 
       - name: Preparar Gradle
         uses: gradle/actions/setup-gradle@v6
