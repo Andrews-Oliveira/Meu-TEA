@@ -237,7 +237,7 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
             }
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
-                Spacer(Modifier.height(18.dp))
+                Spacer(Modifier.height(85.dp))
                 TeaGlassPanel(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
                     dark = true
