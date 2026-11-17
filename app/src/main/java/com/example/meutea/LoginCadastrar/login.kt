@@ -1,40 +1,41 @@
 package com.example.meutea.LoginCadastrar
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.Image
+import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.R
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import com.google.firebase.firestore.FirebaseFirestore
-import android.util.Log
 
-
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * A marca Meu TEA é texto da interface, não parte da imagem.
+ * O login usa fundo neutro e NÃO mostra personagem de qualquer tema.
+ */
 @Composable
 fun LoginScreen(
     navController: NavController,
@@ -43,178 +44,129 @@ fun LoginScreen(
     onCadastrarClicked: () -> Unit
 ) {
     val context = LocalContext.current
-    val email = rememberSaveable { mutableStateOf("") }
-    val senha = rememberSaveable { mutableStateOf("") }
-    val lembrarMe = rememberSaveable { mutableStateOf(false) }
-    val showResetPasswordDialog = remember { mutableStateOf(false) }
-    var isLinkPressed by remember { mutableStateOf(false) } // Estado para mudar cor do link
-
+    var email by rememberSaveable { mutableStateOf("") }
+    var senha by rememberSaveable { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var resetPassword by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Fundo desfocado
-        Image(
-            painter = painterResource(id = R.drawable.img_background),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(20.dp),
-            contentScale = ContentScale.Crop
+    Box(modifier = Modifier.fillMaxSize()) {
+        // ImageView recebe XML shape, VectorDrawable e imagens PNG/JPG/WebP.
+        // painterResource NÃO aceita <shape> e causava crash ao abrir o login.
+        AndroidView(
+            factory = { imageContext ->
+                ImageView(imageContext).apply {
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                    setImageResource(R.drawable.tea_background_login)
+                    contentDescription = null
+                    importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                }
+            },
+            modifier = Modifier.fillMaxSize()
         )
-
-        // Sobreposição escura para melhorar a legibilidade
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
-        )
-
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()), // Permite rolagem
+            modifier = Modifier.fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .imePadding()
+                .padding(horizontal = 22.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.weight(0.3f)) // Ajuste superior
-
-            // Logo responsivo
-            Image(
-                painter = painterResource(id = R.mipmap.ic_meutea),
-                contentDescription = "Logo MeuTEA",
-                modifier = Modifier
-                    .fillMaxWidth(0.5f)
-                    .aspectRatio(1f) // Mantém proporção quadrada
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Título
+            Spacer(Modifier.height(46.dp))
             Text(
-                text = "Boas-vindas!",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                "Meu TEA",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF073F74)
             )
-
             Text(
-                text = "Faça login com seu email cadastrado",
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center,
-                color = Color.White,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                "Comunicar, organizar e acolher.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color(0xFF234D65),
+                textAlign = TextAlign.Center
             )
-
-            // Campo de e-mail
-            OutlinedTextField(
-                value = email.value,
-                onValueChange = { email.value = it },
-                label = { Text("Email", color = Color.White) },
-                textStyle = TextStyle(color = Color.White),
+            Spacer(Modifier.height(54.dp))
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.LightGray,
-                    cursorColor = Color.White,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.LightGray
-                )
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Campo de senha
-            OutlinedTextField(
-                value = senha.value,
-                onValueChange = { senha.value = it },
-                label = { Text("Senha", color = Color.White) },
-                textStyle = TextStyle(color = Color.White),
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.LightGray,
-                    cursorColor = Color.White,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.LightGray
-                )
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Link "Esqueci minha senha" que muda de cor ao pressionar
-            TextButton(
-                onClick = {
-                    isLinkPressed = true
-                    showResetPasswordDialog.value = true
-                }
+                shape = RoundedCornerShape(26.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
-                Text(
-                    text = "Esqueci minha senha",
-                    color = if (isLinkPressed) Color(0xFF64B5F6) else Color.White,
-                    fontSize = 14.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(0.4f)) // **Menos espaço para os botões subirem**
-
-            // Botão de login
-            Button(
-                onClick = {
-                    if (email.value.isNotEmpty() && senha.value.isNotEmpty()) {
-                        coroutineScope.launch {
-                            LoginWithFirebase(
-                                email = email.value,
-                                senha = senha.value,
-                                navController = navController,
-                                context = context
-                            )
-                        }
-                    } else {
-                        Toast.makeText(context, "Preencha todos os campos!", Toast.LENGTH_SHORT).show()
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        "Que bom ter você aqui!",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1C414C)
+                    )
+                    Text(
+                        "Acesse sua conta para continuar.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF38545C)
+                    )
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Seu e-mail") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = senha,
+                        onValueChange = { senha = it },
+                        label = { Text("Sua senha") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    TextButton(
+                        onClick = { resetPassword = true },
+                        modifier = Modifier.align(Alignment.End)
+                    ) { Text("Esqueci minha senha") }
+                    Button(
+                        onClick = {
+                            if (email.isBlank() || senha.isBlank()) {
+                                Toast.makeText(context, "Preencha e-mail e senha.", Toast.LENGTH_SHORT).show()
+                            } else {
+                                coroutineScope.launch {
+                                    isLoading = true
+                                    try {
+                                        LoginWithFirebase(
+                                            email.trim(), senha, navController, context
+                                        )
+                                    } finally {
+                                        isLoading = false
+                                    }
+                                }
+                            }
+                        },
+                        enabled = !isLoading,
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        shape = RoundedCornerShape(15.dp)
+                    ) {
+                        Text(if (isLoading) "Entrando..." else "Entrar")
                     }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xABFFEB3B))
-            ) {
-                Text("LOGIN", color = Color.White)
-            }
-
-            // **Texto abaixo do botão de login incentivando a criação de conta**
-            Text(
-                text = "Ainda não tem uma conta? Crie uma agora!",
-                fontSize = 14.sp,
-                color = Color.White.copy(alpha = 0.8f),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-
-            // Botão de cadastro
-            Button(
-                onClick = { onCadastrarClicked() },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
-            ) {
-                Text("CRIAR CONTA", color = Color.White)
-            }
-
-            Spacer(modifier = Modifier.height(100.dp))
-        }
-
-        // Diálogo para redefinir senha
-        if (showResetPasswordDialog.value) {
-            ResetPasswordDialog(
-                context = context,
-                onDismiss = {
-                    showResetPasswordDialog.value = false
-                    isLinkPressed = false
+                    OutlinedButton(
+                        onClick = onCadastrarClicked,
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        shape = RoundedCornerShape(15.dp),
+                        enabled = !isLoading
+                    ) { Text("Criar minha conta") }
                 }
-            )
+            }
+            Spacer(Modifier.height(24.dp))
+            TextButton(onClick = onBackClicked) { Text("Voltar") }
+            Spacer(Modifier.height(24.dp))
+        }
+        if (resetPassword) {
+            ResetPasswordDialog(context = context, onDismiss = { resetPassword = false })
         }
     }
 }
+
 suspend fun LoginWithFirebase(email: String, senha: String, navController: NavController, context: Context) {
     try {
         val auth = FirebaseAuth.getInstance()

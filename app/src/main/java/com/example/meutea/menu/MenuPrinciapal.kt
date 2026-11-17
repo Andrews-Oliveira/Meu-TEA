@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -26,13 +27,17 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.viewinterop.AndroidView
+import android.widget.ImageView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.meutea.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.runtime.getValue
@@ -54,6 +59,24 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
     val auth = FirebaseAuth.getInstance()
     var loadingCarteira by remember { mutableStateOf(false) }
     var carteiraError by remember { mutableStateOf<String?>(null) }
+    var temaVisual by remember(usuarioId) { mutableStateOf("masculino") }
+    var mostrarTema by remember { mutableStateOf(false) }
+    var erroTema by remember { mutableStateOf<String?>(null) }
+
+    DisposableEffect(usuarioId) {
+        if (auth.currentUser?.uid != usuarioId) {
+            onDispose { }
+        } else {
+            val listener = FirebaseFirestore.getInstance().collection("usuarios")
+                .document(usuarioId).addSnapshotListener { document, error ->
+                    if (error == null) {
+                        temaVisual = if (document?.getString("tema_visual") == "feminino")
+                            "feminino" else "masculino"
+                    }
+                }
+            onDispose { listener.remove() }
+        }
+    }
 
     LaunchedEffect(usuarioId) {
         if (auth.currentUser?.uid != usuarioId) {
@@ -77,8 +100,9 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Meu TEA", fontWeight = FontWeight.Bold) },
+                title = { Text("Início", fontWeight = FontWeight.Bold) },
                 actions = {
+                    TextButton(onClick = { mostrarTema = true }) { Text("Tema") }
                     TextButton(onClick = {
                         auth.signOut()
                         navController.navigate("loginScreen") {
@@ -93,8 +117,28 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
             )
         }
     ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            // Suporta os fundos XML do repositório E as imagens PNG/WebP do pacote.
+            // painterResource só suporta vetores e bitmaps; <shape> causava crash.
+            AndroidView(
+                factory = { imageContext ->
+                    ImageView(imageContext).apply {
+                        scaleType = ImageView.ScaleType.CENTER_CROP
+                        importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                    }
+                },
+                update = { backgroundView ->
+                    backgroundView.setImageResource(
+                        if (temaVisual == "feminino") R.drawable.tea_background_feminino
+                        else R.drawable.tea_background_masculino
+                    )
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+            // Camada leve mantém textos e controles legíveis sobre a ilustração.
+            Box(modifier = Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.15f)))
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -176,6 +220,39 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                 )
             }
         }
+        }
+    }
+
+    if (mostrarTema) {
+        AlertDialog(
+            onDismissRequest = { mostrarTema = false },
+            title = { Text("Escolher imagem do tema") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Você pode mudar de ilustração quando quiser.")
+                    listOf("masculino" to "Com menino", "feminino" to "Com menina")
+                        .forEach { (id, label) ->
+                            TextButton(onClick = {
+                                FirebaseFirestore.getInstance().collection("usuarios")
+                                    .document(usuarioId).update("tema_visual", id)
+                                    .addOnFailureListener {
+                                        erroTema = "Não foi possível salvar o tema."
+                                    }
+                                mostrarTema = false
+                            }) { Text(label) }
+                        }
+                }
+            },
+            confirmButton = { TextButton(onClick = { mostrarTema = false }) { Text("Fechar") } }
+        )
+    }
+    erroTema?.let { message ->
+        AlertDialog(
+            onDismissRequest = { erroTema = null },
+            title = { Text("Erro ao alterar tema") },
+            text = { Text(message) },
+            confirmButton = { TextButton(onClick = { erroTema = null }) { Text("OK") } }
+        )
     }
 }
 

@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   pull_request:
-    branches: [main, fix/fluxos-essenciais-meu-tea-20261117]
+    branches: [main, fix/fluxos-essenciais-meu-tea-20261117, feat/meu-tea-v2-modulos-20261117]
   push:
     branches: [main]
 
@@ -37,4 +37,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Testes, compilacao e lint
-        run: bash ./gradlew --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+        run: bash ./gradlew --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest :app:lintDebug
