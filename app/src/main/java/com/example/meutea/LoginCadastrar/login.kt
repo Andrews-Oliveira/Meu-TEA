@@ -3,7 +3,7 @@ package com.example.meutea.LoginCadastrar
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.Image
+import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,9 +15,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
@@ -52,10 +51,17 @@ fun LoginScreen(
     val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Image(
-            painter = painterResource(R.drawable.tea_background_login),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
+        // ImageView recebe XML shape, VectorDrawable e imagens PNG/JPG/WebP.
+        // painterResource NÃO aceita <shape> e causava crash ao abrir o login.
+        AndroidView(
+            factory = { imageContext ->
+                ImageView(imageContext).apply {
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                    setImageResource(R.drawable.tea_background_login)
+                    contentDescription = null
+                    importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                }
+            },
             modifier = Modifier.fillMaxSize()
         )
         Column(
