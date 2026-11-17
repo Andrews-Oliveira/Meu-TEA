@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    match /usuarios/{userId} {
+      // Valide os campos existentes e a política de exclusão antes de implantar.
+      allow read, create, update, delete: if isOwner(userId);
+
+      match /comunicacao/{cardId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.keys().hasOnly(['id', 'texto', 'categoria', 'simbolo'])
+          && request.resource.data.id == cardId
+          && request.resource.data.texto is string
+          && request.resource.data.texto.size() > 0
+          && request.resource.data.texto.size() <= 100
+          && request.resource.data.categoria in [
+            'Necessidades', 'Emoções', 'Conforto', 'Escolhas', 'Convivência'
+          ]
+          && request.resource.data.simbolo is string
+          && request.resource.data.simbolo.size() <= 10;
+      }
+
+      match /rotinas/{rotinaId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.keys().hasOnly([
+            'id', 'titulo', 'horario', 'periodo', 'concluidaEm'
+          ])
+          && request.resource.data.id == rotinaId
+          && request.resource.data.titulo is string
+          && request.resource.data.titulo.size() > 0
+          && request.resource.data.titulo.size() <= 70
+          && request.resource.data.periodo in ['Manhã', 'Tarde', 'Noite']
+          && request.resource.data.horario is string
+          && request.resource.data.horario.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+          && request.resource.data.concluidaEm is string
+          && request.resource.data.concluidaEm.size() <= 10;
+      }
+    }
+    // Negação por padrão para coleções não declaradas, inclusive o protótipo global antigo.
+  }
+}
