@@ -150,7 +150,7 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                 verticalArrangement = Arrangement.spacedBy(13.dp)
             ) {
                 // Deixa a ilustração respirar: nome não fica preso no topo do desenho.
-                item { Spacer(Modifier.height(56.dp)) }
+                item { Spacer(Modifier.height(128.dp)) }
                 item {
                     TeaGlassPanel(dark = true, modifier = Modifier.fillMaxWidth()) {
                         Text("Olá, $firstName!",
