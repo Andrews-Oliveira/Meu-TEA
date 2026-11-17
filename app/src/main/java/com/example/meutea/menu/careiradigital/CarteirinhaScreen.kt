@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.meutea.menu.CustomFormattedTextField
 import com.example.meutea.menu.DropdownMenuField
-import com.example.meutea.models.Usuario
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 // 🔹 Lista de Estados do Brasil
@@ -92,37 +92,34 @@ fun CarteirinhaScreen(navController: NavController, usuarioId: String) {
         isLoading = true
         errorMessage = null
 
-        val usuario = Usuario(
-            nome = nome,
-            cpf = cpf,
-            rg = rg,
-            nascimento = nascimento,
-            genero = genero,
-            tipoSanguineo = tipoSanguineo,
-            telefone = telefoneContato,
-            email = emailContato,
-            endereco = endereco,
-            estado = estado,
-            cid = cid,
-            naturalidade = naturalidade
+        // Grava todos os dados e o indicador de carteirinha em uma única operação.
+        // Merge preserva os campos da conta, como uid e configurações existentes.
+        val dados = mapOf(
+            "nome" to nome,
+            "cpf" to cpf,
+            "rg" to rg,
+            "nascimento" to nascimento,
+            "genero" to genero,
+            "tipoSanguineo" to tipoSanguineo,
+            "telefone" to telefoneContato,
+            "email" to emailContato,
+            "endereco" to endereco,
+            "estado" to estado,
+            "cid" to cid,
+            "naturalidade" to naturalidade,
+            "carteira_digital" to true
         )
 
         db.collection("usuarios").document(usuarioId)
-            .set(usuario)
+            .set(dados, SetOptions.merge())
             .addOnSuccessListener {
-                // ✅ Atualiza `carteira_digital = true` no Firestore
-                db.collection("usuarios").document(usuarioId)
-                    .update("carteira_digital", true)
-                    .addOnSuccessListener {
-                        Log.d("Firestore", "Carteira digital ativada para usuário: $usuarioId")
-                        // ✅ Após salvar, redireciona para `CarteirinhaViewScreen`
-                        navController.navigate("carteirinhaViewScreen/$usuarioId") {
-                            popUpTo("CarteirinhaScreen") { inclusive = true }
-                        }
-                    }
+                navController.navigate("carteirinhaViewScreen/$usuarioId") {
+                    popUpTo("carteirinhaScreen/{usuarioId}") { inclusive = true }
+                    launchSingleTop = true
+                }
             }
             .addOnFailureListener { e ->
-                errorMessage = "Erro ao salvar dados: ${e.message}"
+                errorMessage = "Não foi possível salvar a carteirinha: ${e.localizedMessage ?: "tente novamente"}"
             }
             .addOnCompleteListener {
                 isLoading = false
@@ -233,6 +230,7 @@ fun CarteirinhaScreen(navController: NavController, usuarioId: String) {
                         Spacer(modifier = Modifier.width(16.dp))
                         Button(
                             onClick = { salvarDadosNoFirestore() },
+                            enabled = !isLoading,
                             modifier = Modifier.weight(1f)
                         ) {
                             Text("Salvar")
