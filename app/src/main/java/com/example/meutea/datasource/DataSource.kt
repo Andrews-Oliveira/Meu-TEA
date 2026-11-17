@@ -12,7 +12,7 @@ class DataSource {
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
 
-    suspend fun signUp(nome: String, email: String, senha: String): FirebaseUser? {
+    suspend fun signUp(nome: String, email: String, senha: String, temaVisual: String = "masculino"): FirebaseUser? {
         return try {
             val auth = FirebaseAuth.getInstance()
             val db = FirebaseFirestore.getInstance()
@@ -33,7 +33,8 @@ class DataSource {
                     "uid" to user.uid,
                     "nome" to nome,
                     "email" to email,
-                    "carteira_digital" to false // Indica que ainda não preencheu os dados da carteira
+                    "carteira_digital" to false, // Indica que ainda não preencheu os dados da carteira
+                    "tema_visual" to if (temaVisual == "feminino") "feminino" else "masculino"
                 )
                 db.collection("usuarios").document(user.uid).set(userData).await()
 
