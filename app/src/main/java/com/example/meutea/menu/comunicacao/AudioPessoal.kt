@@ -109,6 +109,7 @@ internal class AudioPessoal(context: Context, private val userId: String) {
             val destino = gravado(card)
             instalarArquivo(parcial, destino)
             importado(card).delete()
+            Unit
         }.onFailure {
             parcial?.delete()
         }
@@ -155,6 +156,7 @@ internal class AudioPessoal(context: Context, private val userId: String) {
             check(parcial.length() > 1500L) { "Arquivo de áudio vazio." }
             instalarArquivo(parcial, importado(cardId))
             gravado(cardId).delete()
+            Unit
         } finally {
             parcial.delete()
         }
