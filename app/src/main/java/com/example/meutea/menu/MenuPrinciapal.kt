@@ -1,7 +1,6 @@
 package com.example.meutea.menu
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,8 +31,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.viewinterop.AndroidView
+import android.widget.ImageView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -119,14 +118,22 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            Image(
-                painter = painterResource(
-                    if (temaVisual == "feminino") R.drawable.tea_background_feminino
-                    else R.drawable.tea_background_masculino
-                ),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+            // Suporta os fundos XML do repositório E as imagens PNG/WebP do pacote.
+            // painterResource só suporta vetores e bitmaps; <shape> causava crash.
+            AndroidView(
+                factory = { imageContext ->
+                    ImageView(imageContext).apply {
+                        scaleType = ImageView.ScaleType.CENTER_CROP
+                        importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                    }
+                },
+                update = { backgroundView ->
+                    backgroundView.setImageResource(
+                        if (temaVisual == "feminino") R.drawable.tea_background_feminino
+                        else R.drawable.tea_background_masculino
+                    )
+                },
+                modifier = Modifier.fillMaxSize()
             )
             // Camada leve mantém textos e controles legíveis sobre a ilustração.
             Box(modifier = Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.15f)))
