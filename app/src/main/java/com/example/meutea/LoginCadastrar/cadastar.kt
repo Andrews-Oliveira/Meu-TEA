@@ -4,6 +4,10 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -23,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -54,6 +60,7 @@ fun CadastrarScreen(
     val nome = remember { mutableStateOf("") }
     val email = remember { mutableStateOf("") }
     val senha = remember { mutableStateOf("") }
+    val temaVisual = rememberSaveable { mutableStateOf("masculino") }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -63,7 +70,7 @@ fun CadastrarScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         // Imagem de fundo com o efeito de blur
         Image(
-            painter = painterResource(id = R.drawable.img_background),
+            painter = painterResource(id = R.drawable.tea_background_login),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
@@ -82,7 +89,8 @@ fun CadastrarScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Botão "Voltar" mais compacto
@@ -105,15 +113,6 @@ fun CadastrarScreen(
                 }
             }
 
-            // Logo do app
-            Image(
-                painter = painterResource(id = R.mipmap.ic_meutea),
-                contentDescription = "Logo MeuTEA",
-                modifier = Modifier
-                    .size(240.dp, 230.dp)
-                    .padding(top = 16.dp)
-            )
-
             // Título
             Text(
                 text = "Boas vindas!",
@@ -132,6 +131,31 @@ fun CadastrarScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 50.dp, vertical = 16.dp)
+            )
+
+            // Tema visual escolhido pela própria pessoa (não inferir pelo sexo).
+            Text(
+                text = "Qual ilustração você prefere?",
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                FilterChip(
+                    selected = temaVisual.value == "masculino",
+                    onClick = { temaVisual.value = "masculino" },
+                    label = { Text("Menino") }
+                )
+                FilterChip(
+                    selected = temaVisual.value == "feminino",
+                    onClick = { temaVisual.value = "feminino" },
+                    label = { Text("Menina") }
+                )
+            }
+            Text(
+                "É só uma preferência de imagem. Você pode mudar depois.",
+                color = Color.White,
+                style = MaterialTheme.typography.bodySmall
             )
 
             // Campos de texto
@@ -206,7 +230,7 @@ fun CadastrarScreen(
                         } else {
                             coroutineScope.launch {
                                 try {
-                                    val user = dataSource.signUp(nome.value, email.value, senha.value)
+                                    val user = dataSource.signUp(nome.value, email.value, senha.value, temaVisual.value)
                                     if (user != null) {
                                         withContext(Dispatchers.Main) {
                                             Toast.makeText(context, "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show()
