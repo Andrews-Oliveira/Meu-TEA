@@ -139,8 +139,7 @@ internal fun gerarMatematica(
         val bound=when(nivel){"Inicial"->30;"Intermediário"->90;else->250}
         val a=tabuada?:rand.nextInt(1,bound+1)
         val b=rand.nextInt(1,if(tabuada!=null)101 else if(operation=="×"||operation=="÷") 16 else bound+1)
-        val key="$operation:$a:$b"
-        if(!seen.add(key))continue
+        // O enunciado completo é a chave para evitar perguntas idênticas.
         val question=when(operation){
             "+"->resposta(a+b,"Quanto é $a + $b?",
                 "Somando $a e $b, obtemos ${a+b}.","Adição",rand)
@@ -154,7 +153,7 @@ internal fun gerarMatematica(
             else->resposta(a,"Quanto é ${a*b} ÷ $b?",
                 "$b multiplicado por $a dá ${a*b}.","Divisão exata",rand)
         }
-        result.add(question)
+        if(seen.add(question.enunciado))result.add(question)
     }
     require(result.size==total){"Não foi possível gerar todas as questões"}
     return result

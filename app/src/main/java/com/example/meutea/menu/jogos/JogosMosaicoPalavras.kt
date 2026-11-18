@@ -3,6 +3,7 @@ package com.example.meutea.menu.jogos
 import android.graphics.Bitmap
 import android.graphics.Canvas as AndroidCanvas
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

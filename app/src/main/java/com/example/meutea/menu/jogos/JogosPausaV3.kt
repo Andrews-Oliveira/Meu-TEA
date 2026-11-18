@@ -70,8 +70,12 @@ private val palette=listOf(
     var selected by remember(mode,step){mutableIntStateOf(-1)}
     val garden=remember {mutableStateListOf<Int>().apply{repeat(25){add(0)}}}
     var gardenRound by remember{mutableIntStateOf(0)}
-    val targets=remember(mode,step){List(16){Random(step*137+it).nextInt(4)}}
     val targetIndex=remember(mode,step){Random(step+531).nextInt(4)}
+    val targets=remember(mode,step){
+        List(16){index->
+            if(index==0)targetIndex else Random(step*137+index).nextInt(4)
+        }.shuffled(Random(step*91+2))
+    }
     val matched=remember(mode,step){mutableStateListOf<Int>()}
     TelaJogo("Meu momento",onBack) {
         if(mode.isEmpty()){

@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,7 +54,7 @@ private val entries = listOf(
 
 @Composable fun JogosV2Screen(navController: NavHostController) {
     androidx.compose.runtime.key(navController) {
-        var active by androidx.compose.runtime.rememberSaveable {
+        var active by rememberSaveable {
             androidx.compose.runtime.mutableStateOf("")
         }
         when(active) {
