@@ -322,7 +322,8 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        TeaWallpaper(temaVisual = temaVisual, modifier = Modifier.fillMaxSize(), tint = 0.06f)
+        TeaWallpaper(temaVisual = temaVisual, modifier = Modifier.fillMaxSize(), tint = 0.12f)
+        Box(Modifier.fillMaxSize().background(Color(0x66E8F5FE)))
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
@@ -342,19 +343,19 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xDF093A70)
+                        containerColor = Color(0xF013365D)
                     )
                 )
             }
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
-                Spacer(Modifier.height(85.dp))
+                Spacer(Modifier.height(12.dp))
                 TeaGlassPanel(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
                     dark = true
                 ) {
                     Text("MINHA FRASE", style = MaterialTheme.typography.labelLarge,
-                        color = Color(0xFFC0FFEE), fontWeight = FontWeight.ExtraBold)
+                        color = Color(0xFFD6F7FC), fontWeight = FontWeight.ExtraBold)
                     Spacer(Modifier.height(5.dp))
                     Text(
                         if (frases.isEmpty()) "Toque nas figuras para se expressar"
@@ -369,8 +370,10 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
                             onClick = { falar(frases.joinToString(". ")) },
                             enabled = frases.isNotEmpty() && vozDisponivel,
                             colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFE6F8FF),
-                                contentColor = TeaPalette.ink
+                                containerColor = Color.White,
+                                contentColor = TeaPalette.ink,
+                                disabledContainerColor = Color(0xFFD8E8F0),
+                                disabledContentColor = Color(0xFF49647B)
                             )
                         ) { Text("▶ Ouvir tudo") }
                         OutlinedButton(
@@ -412,13 +415,19 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Toque para falar",
+                    Text("Escolha uma figura",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color.White)
+                        color = TeaPalette.ink,
+                        modifier = Modifier.background(
+                            Color(0xEDF5FAFF), RoundedCornerShape(12.dp)
+                        ).padding(horizontal = 10.dp, vertical = 6.dp))
                     TextButton(onClick = { criar = true }, enabled = uid != null) {
-                        Text("+ Meu cartão", color = Color.White,
-                            fontWeight = FontWeight.Bold)
+                        Text("+ Criar cartão", color = TeaPalette.ink,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.background(
+                                Color(0xEAF9FCFF), RoundedCornerShape(12.dp)
+                            ).padding(horizontal = 8.dp, vertical = 4.dp))
                     }
                 }
                 LazyVerticalGrid(
@@ -438,9 +447,9 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
                             },
                             shape = RoundedCornerShape(21.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xF2E9F9FF)
+                                containerColor = Color(0xFFF7FBFF)
                             ),
-                            border = BorderStroke(1.5.dp, Color.White),
+                            border = BorderStroke(1.5.dp, Color(0xFFB7D9E8)),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -462,18 +471,21 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
                                         bitmap = foto!!.asImageBitmap(),
                                         contentDescription = null,
                                         contentScale = ContentScale.Fit,
-                                        modifier = Modifier.fillMaxWidth().height(109.dp)
+                                        modifier = Modifier.fillMaxWidth().height(126.dp)
+                                            .clip(RoundedCornerShape(15.dp))
                                     )
                                 } else if (picture != null) {
                                     Image(
                                         painterResource(picture),
                                         contentDescription = null,
-                                        modifier = Modifier.fillMaxWidth().height(109.dp)
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxWidth().height(126.dp)
+                                            .clip(RoundedCornerShape(15.dp))
                                     )
                                 } else {
                                     Box(
-                                        modifier = Modifier.size(94.dp)
-                                            .clip(RoundedCornerShape(20.dp))
+                                        modifier = Modifier.fillMaxWidth().height(126.dp)
+                                            .clip(RoundedCornerShape(15.dp))
                                             .background(
                                                 Brush.linearGradient(
                                                     listOf(Color(0xFF8CE9E5), Color(0xFF7FBCEE))
@@ -481,7 +493,11 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
                                             ),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(item.simbolo, fontSize = 42.sp)
+                                        Image(
+                                            painter = painterResource(R.drawable.tea_routine_planejar),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(104.dp)
+                                        )
                                     }
                                 }
                                 Spacer(Modifier.height(7.dp))
@@ -490,7 +506,8 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
                                     fontWeight = FontWeight.ExtraBold,
                                     color = TeaPalette.ink,
                                     style = MaterialTheme.typography.bodyLarge,
-                                    textAlign = TextAlign.Center
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 3
                                 )
                                 val possuiAudio = revisaoAudio.let {
                                     audiosPessoais?.existe(item.id) == true
