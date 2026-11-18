@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="360dp"
+    android:height="800dp"
+    android:viewportWidth="360"
+    android:viewportHeight="800">
+    <!-- Fundo exclusivo do login: sem texto embutido e sem personagem -->
+    <path android:fillColor="#FF062F67" android:pathData="M0,0h360v800H0z"/>
+    <path android:fillColor="#FF07518D"
+        android:pathData="M0,0H360V340Q250,245 140,340Q50,390 0,337z"/>
+    <path android:fillColor="#FF087BA6"
+        android:pathData="M0,132Q116,40 360,179V560Q232,484 100,585Q48,607 0,579z"/>
+    <path android:fillColor="#FF58C9D0"
+        android:pathData="M0,383Q120,335 250,409Q305,441 360,423V800H0z"/>
+    <path android:fillColor="#FFB2EAF4"
+        android:pathData="M0,536Q60,504 141,534Q228,564 360,500V800H0z"/>
+    <path android:fillColor="#FFDCF6FF"
+        android:pathData="M0,694Q140,645 235,689Q290,723 360,681V800H0z"/>
+    <!-- Formas delicadas nas laterais, área central livre para formulário -->
+    <path android:fillColor="#FF1AB9AE" android:fillAlpha="0.9"
+        android:pathData="M0,68Q52,5 110,54Q64,111 0,101z"/>
+    <path android:fillColor="#FF58CF8C"
+        android:pathData="M0,38Q20,4 57,0Q78,18 63,41Q42,57 0,58z"/>
+    <path android:fillColor="#FF42AF76"
+        android:pathData="M0,102Q24,69 75,88Q64,126 22,142Q0,143 0,140z"/>
+    <path android:fillColor="#FFE7B65B"
+        android:pathData="M303,50Q315,22 344,26Q363,44 360,70Q342,102 307,94z"/>
+    <path android:fillColor="#FFFFD16F"
+        android:pathData="M290,46A47,47 0,1 1,290.01 46z"/>
+    <!-- Peça de quebra-cabeça abstrata: sem texto ou marca -->
+    <path android:fillColor="#FFF0B449"
+        android:pathData="M5,696h40v-11q-8,-4 -8,-14q0,-11 12,-11q12,0 12,11q0,10 -8,14v11h37v30h-13q-6,0 -6,8q0,8 6,8h13v35H51v-12q0,-8 -8,-8t-8,8v12H5z"/>
+    <path android:fillColor="#FF9F88DD"
+        android:pathData="M289,653h36v12q-7,4 -7,12q0,9 10,9q10,0 10,-9q0,-8 -7,-12v-12h29v37h-12q-6,0 -6,8q0,8 6,8h12v37h-31v-11q-4,-7 -12,-7q-9,0 -9,11v11h-35v-37h10q8,0 8,-8q0,-8 -8,-8h-10z"/>
+    <path android:fillColor="#FF58B6DE"
+        android:pathData="M320,104q-20,-14 -38,0q-12,20 0,36q18,12 38,0q17,-20 0,-36z"/>
+    <path android:fillColor="#FF78DEC9" android:fillAlpha="0.8"
+        android:pathData="M258,135q-12,-8 -24,0q-6,12 2,21q10,6 23,-2q7,-12 -1,-19z"/>
+    <path android:fillColor="#FFFFFFFF" android:fillAlpha="0.23"
+        android:pathData="M20,210Q100,149 166,203Q234,255 334,202Q274,273 156,269Q49,264 20,210z"/>
+    <path android:fillColor="#FFFFFFFF" android:fillAlpha="0.16"
+        android:pathData="M28,595Q119,540 184,599Q263,661 331,602Q275,695 168,681Q62,677 28,595z"/>
+</vector>
