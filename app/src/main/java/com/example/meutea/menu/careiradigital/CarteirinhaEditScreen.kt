@@ -61,9 +61,10 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
-    } else if (errorMessage != null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(errorMessage!!, color = MaterialTheme.colorScheme.error, fontSize = 18.sp)
+    } else if (usuario == null) {
+        Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+            Text(errorMessage ?: "Não foi possível carregar a identificação.",
+                color = MaterialTheme.colorScheme.error, fontSize = 18.sp)
         }
     } else {
         usuario?.let { user ->
