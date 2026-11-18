@@ -357,60 +357,63 @@ fun RotinasScreen(navController: NavHostController) {
                     }
                 }
                 items(filtradas, key = { it.id }) { atividade ->
-                    val marcada = atividade.concluidaEm == diaAtual
+                    val concluida = atividade.concluidaEm == diaAtual
                     Card(
+                        modifier = Modifier.fillMaxWidth().animateContentSize(),
                         shape = RoundedCornerShape(22.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = if (marcada)
-                                Color(0xF2D8F8E9) else Color(0xF3EAF8FF)
+                            containerColor = if (concluida)
+                                Color(0xFFF0FBF5) else Color(0xFFF8FBFF)
                         ),
-                        border = BorderStroke(1.4.dp, Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        modifier = Modifier.fillMaxWidth().animateContentSize()
+                        border = BorderStroke(
+                            1.5.dp, if (concluida) Color(0xFF5BAF97) else Color(0xFFBCDCE9)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                modifier = Modifier.size(86.dp)
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(Color(0xFFD4F1F5)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    painter = painterResource(imagemDaRotina(atividade.titulo)),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(82.dp)
-                                )
-                            }
-                            Spacer(Modifier.size(13.dp))
+                            Image(
+                                painter = painterResource(imagemDaRotina(atividade.titulo)),
+                                contentDescription = null,
+                                modifier = Modifier.size(78.dp)
+                                    .clip(RoundedCornerShape(17.dp))
+                            )
+                            Spacer(Modifier.size(12.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(
                                     atividade.titulo,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = TeaPalette.ink,
                                     style = MaterialTheme.typography.titleMedium,
-                                    textDecoration = if (marcada)
-                                        TextDecoration.LineThrough else TextDecoration.None,
                                     maxLines = 3
                                 )
                                 Spacer(Modifier.height(5.dp))
-                                Text("Horário: " + atividade.horario,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color(0xFF135B9A),
-                                    fontWeight = FontWeight.Bold)
-                                Row {
+                                Text(
+                                    atividade.horario + "  •  " + if (concluida)
+                                        "Concluída hoje" else "A fazer",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (concluida) Color(0xFF126B57)
+                                        else Color(0xFF32638C)
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
                                     TextButton(onClick = { editar = atividade }) {
-                                        Text("Editar", color = TeaPalette.ocean)
+                                        Text("Editar", color = TeaPalette.ocean,
+                                            fontWeight = FontWeight.Bold)
                                     }
                                     TextButton(onClick = { excluir = atividade }) {
-                                        Text("Excluir", color = Color(0xFFAF3F55))
+                                        Text("Excluir", color = Color(0xFF9C3D52),
+                                            fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
                             Checkbox(
-                                checked = marcada,
+                                checked = concluida,
                                 onCheckedChange = { marcado ->
                                     val currentUid = uid ?: return@Checkbox
                                     FirebaseFirestore.getInstance().collection("usuarios")
@@ -422,7 +425,8 @@ fun RotinasScreen(navController: NavHostController) {
                                         }
                                 },
                                 colors = androidx.compose.material3.CheckboxDefaults.colors(
-                                    checkedColor = TeaPalette.teal
+                                    checkedColor = TeaPalette.teal,
+                                    uncheckedColor = TeaPalette.ocean
                                 )
                             )
                         }
