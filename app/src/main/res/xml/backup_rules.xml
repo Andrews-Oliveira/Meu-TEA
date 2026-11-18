@@ -2,5 +2,4 @@
 <full-backup-content>
     <!-- Fotografias de identificação permanecem locais e fora do backup automático. -->
     <exclude domain="file" path="identificacao_pessoal/" />
-    <exclude domain="cache" path="tea_camera/" />
 </full-backup-content>
