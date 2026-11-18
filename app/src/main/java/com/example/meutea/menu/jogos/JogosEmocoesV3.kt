@@ -3,6 +3,10 @@ package com.example.meutea.menu.jogos
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -42,7 +46,7 @@ private val cenarios=listOf(
         "Quero escolher minha atividade.","Oferecer escolhas respeita preferências."),
     Cena("Gratidão",R.drawable.tea_pic_obrigado,"Alguém ofereceu apoio.",
         "Obrigado por me ajudar.","A gratidão pode ser expressa de muitas maneiras."),
-    Cena("Confusão",R.drawable.tea_pic_repetir,"Uma instrução foi dada rápido demais.",
+    Cena("Confusão",R.drawable.tea_pic_escolher,"Uma instrução foi dada rápido demais.",
         "Pode repetir devagar?","Repetir instruções com clareza pode ajudar."),
     Cena("Felicidade",R.drawable.tea_pic_feliz,"Você encontrou uma pessoa querida.",
         "Que bom te ver!","As relações são diferentes para cada pessoa."),
@@ -58,11 +62,11 @@ private val cenarios=listOf(
         "Essa roupa está me incomodando.","Ajustar o ambiente pode trazer conforto."),
     Cena("Entusiasmo",R.drawable.tea_pic_feliz,"Um jogo favorito vai começar.",
         "Estou animado para jogar!","Interesses pessoais podem trazer muita alegria."),
-    Cena("Concentração",R.drawable.tea_pic_silencio,"Você está fazendo uma atividade que exige atenção.",
+    Cena("Concentração",R.drawable.tea_routine_estudo,"Você está fazendo uma atividade que exige atenção.",
         "Quero me concentrar agora.","Respeite a maneira de concentrar-se da pessoa."),
     Cena("Frustração",R.drawable.tea_raiva,"Um projeto não saiu como você esperava.",
         "Estou frustrado. Quero tentar depois.","É aceitável parar, ajustar e recomeçar."),
-    Cena("Dúvida",R.drawable.tea_pic_repetir,"A explicação deixou uma pergunta.",
+    Cena("Dúvida",R.drawable.tea_pic_escolher,"A explicação deixou uma pergunta.",
         "Não entendi esta parte.","Perguntas ajudam a construir conhecimento."),
     Cena("Orgulho",R.drawable.tea_pic_feliz,"Você aprendeu algo novo.",
         "Estou orgulhoso de mim!","Reconhecer esforço é importante."),
@@ -130,17 +134,38 @@ private val nomesEmocao=listOf("Alegria","Tristeza","Medo","Raiva","Cansaço","D
         } else {
             GamePanel {
                 GameProgress(round,total,"Histórias exploradas")
-                Image(painterResource(current.figura),contentDescription="Ilustração do cenário",
-                    modifier=Modifier.size(145.dp).align(Alignment.CenterHorizontally))
-                Text(current.historia,
-                    style=MaterialTheme.typography.titleLarge,
-                    fontWeight=FontWeight.Bold,color=GameColors.navy,
-                    textAlign=TextAlign.Center)
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                        .background(
+                            Brush.horizontalGradient(listOf(
+                                Color(0xFFD4F5F4), Color(0xFFE4EFFC)
+                            )), RoundedCornerShape(20.dp)
+                        ).padding(13.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Image(
+                            painter = painterResource(current.figura),
+                            contentDescription = "Ilustração da situação: " + current.historia,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(178.dp)
+                                .clip(RoundedCornerShape(18.dp))
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            current.historia,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = GameColors.navy,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
                 Text(when(nivel){
-                    "Inicial"->"Qual emoção poderia combinar com essa situação?"
-                    "Intermediário"->"Qual frase ajudaria a se expressar?"
-                    else->"Que atitude respeitosa pode ajudar?"
-                },color=GameColors.muted)
+                    "Inicial"->"Como alguém poderia se sentir nessa situação?"
+                    "Intermediário"->"Qual frase poderia ajudar a se expressar?"
+                    else->"Que atitude respeitosa pode oferecer apoio?"
+                },color=GameColors.ink,fontWeight=FontWeight.SemiBold)
                 choices.forEachIndexed{i,option->
                     val selected=answer==i
                     val expected=answer>=0 && option==correct
@@ -155,9 +180,22 @@ private val nomesEmocao=listOf("Alegria","Tristeza","Medo","Raiva","Cansaço","D
                                 else->Color.White
                             },contentColor=GameColors.navy),
                         border=BorderStroke(1.5.dp,if(expected)GameColors.teal else GameColors.border)
-                    ) {Text(option,color=GameColors.navy,
-                        textAlign=TextAlign.Center,
-                        style=MaterialTheme.typography.bodyLarge)}
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                (i + 1).toString(),
+                                color = if(expected) Color(0xFF17614D) else GameColors.navy,
+                                fontWeight = FontWeight.ExtraBold,
+                                modifier = Modifier.padding(end = 13.dp)
+                            )
+                            Text(option,color=GameColors.navy,
+                                textAlign=TextAlign.Start,
+                                style=MaterialTheme.typography.bodyLarge)
+                        }
+                    }
                 }
                 if(answer>=0){
                     Text("Uma possibilidade: "+correct,color=GameColors.navy,
@@ -170,6 +208,11 @@ private val nomesEmocao=listOf("Alegria","Tristeza","Medo","Raiva","Cansaço","D
             }
             GameAction("Próxima história",onClick={round++},
                 enabled=answer>=0,modifier=Modifier.fillMaxWidth())
+            if(answer<0) {
+                Text("Escolha uma resposta para continuar. Não existe limite de tempo.",
+                    color=GameColors.muted,
+                    style=MaterialTheme.typography.bodyMedium)
+            }
             GameAction("Alterar atividade",onClick={ready=false},
                 secondary=true,modifier=Modifier.fillMaxWidth())
         }
