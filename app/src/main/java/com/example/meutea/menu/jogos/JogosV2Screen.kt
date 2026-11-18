@@ -1,5 +1,8 @@
 package com.example.meutea.menu.jogos
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.example.meutea.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -55,28 +58,28 @@ private data class JogoItem(
     val id: String,
     val titulo: String,
     val descricao: String,
-    val icone: String,
+    val icone: Int,
     val cores: List<Color>
 )
 
 private val catalogo = listOf(
-    JogoItem("quebra", "Quebra-cabeça", "Reconstrua uma figura", "🧩",
+    JogoItem("quebra", "Quebra-cabeça", "Reconstrua uma figura", R.drawable.tea_game_puzzle,
         listOf(Color(0xFF188AC8), Color(0xFF35C0DB))),
-    JogoItem("palavras", "Caça-palavras", "Encontre palavras na grade", "🔎",
+    JogoItem("palavras", "Caça-palavras", "Encontre palavras na grade", R.drawable.tea_game_words,
         listOf(Color(0xFF13A992), Color(0xFF4BCEAD))),
-    JogoItem("cobra", "Cobrinha", "Mova e colete as frutas", "🐍",
+    JogoItem("cobra", "Cobrinha", "Mova e colete as frutas", R.drawable.tea_game_snake,
         listOf(Color(0xFF559D49), Color(0xFF95CF5F))),
-    JogoItem("objetos", "Procure o objeto", "Localize o desenho solicitado", "🔭",
+    JogoItem("objetos", "Procure o objeto", "Localize o desenho solicitado", R.drawable.tea_game_search,
         listOf(Color(0xFFDB8C22), Color(0xFFF0C35D))),
-    JogoItem("matematica", "Matemática", "Desafios com números", "✚",
+    JogoItem("matematica", "Matemática", "Desafios com números", R.drawable.tea_game_math,
         listOf(Color(0xFF8B6BDF), Color(0xFFC09BEE))),
-    JogoItem("portugues", "Português", "Leitura e palavras", "📚",
+    JogoItem("portugues", "Português", "Leitura e palavras", R.drawable.tea_game_books,
         listOf(Color(0xFFCA598E), Color(0xFFF09CB9))),
-    JogoItem("logica", "Lógica", "Padrões e sequências", "🧠",
+    JogoItem("logica", "Lógica", "Padrões e sequências", R.drawable.tea_game_logic,
         listOf(Color(0xFF387ACB), Color(0xFF56B8EF))),
-    JogoItem("emocoes", "Emoções", "Descubra expressões", "🙂",
+    JogoItem("emocoes", "Emoções", "Descubra expressões", R.drawable.tea_game_smile,
         listOf(Color(0xFFCF8255), Color(0xFFF2B278))),
-    JogoItem("pausa", "Pausa tranquila", "Uma atividade sem pressa", "🌿",
+    JogoItem("pausa", "Pausa tranquila", "Uma atividade sem pressa", R.drawable.tea_game_leaf,
         listOf(Color(0xFF168D83), Color(0xFF5FC6A6)))
 )
 
@@ -189,7 +192,9 @@ private fun JogosCatalogo(onBack: () -> Unit, onSelect: (String) -> Unit) {
                                     .background(Brush.linearGradient(item.cores)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(item.icone, fontSize = 44.sp)
+                                Image(painter = painterResource(item.icone),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(57.dp))
                             }
                             Spacer(Modifier.height(12.dp))
                             Text(item.titulo,
