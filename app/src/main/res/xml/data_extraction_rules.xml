@@ -2,10 +2,8 @@
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="file" path="identificacao_pessoal/" />
-        <exclude domain="cache" path="tea_camera/" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="file" path="identificacao_pessoal/" />
-        <exclude domain="cache" path="tea_camera/" />
     </device-transfer>
 </data-extraction-rules>
