@@ -173,7 +173,10 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                             }
                             Spacer(Modifier.width(10.dp))
                             Image(
-                                painter = painterResource(R.drawable.tea_pic_feliz),
+                                painter = painterResource(
+                                    if (temaVisual == "feminino") R.drawable.tea_routine_cafe
+                                    else R.drawable.tea_pic_feliz
+                                ),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.size(90.dp)
