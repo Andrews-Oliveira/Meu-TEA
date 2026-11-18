@@ -97,12 +97,16 @@ fun CarteirinhaViewScreen(navController: NavController, userId: String?) {
         } else null
     }
 
-    fun salvarFoto(uri: Uri) {
+    fun salvarFoto(uri: Uri, arquivoTemporario: File? = null) {
         val id = userId ?: return
         if (uidAtual != id) return
         scope.launch {
             val result = withContext(Dispatchers.IO) {
-                FotoIdentificacao.salvar(context, id, uri)
+                try {
+                    FotoIdentificacao.salvar(context, id, uri)
+                } finally {
+                    arquivoTemporario?.delete()
+                }
             }
             if (result) {
                 fotoRevisao++
@@ -120,9 +124,12 @@ fun CarteirinhaViewScreen(navController: NavController, userId: String?) {
     val tirarFoto = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
         sucesso ->
         val uri = uriCamera
-        if (sucesso && uri != null) salvarFoto(uri)
-        else aviso = "A captura foi cancelada."
-        fotoCamera?.delete()
+        if (sucesso && uri != null) {
+            salvarFoto(uri, fotoCamera)
+        } else {
+            fotoCamera?.delete()
+            aviso = "A captura foi cancelada."
+        }
         fotoCamera = null
         uriCamera = null
     }
