@@ -1,6 +1,11 @@
 package com.example.meutea.menu.careiradigital
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -26,12 +31,18 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
     var usuario by remember { mutableStateOf<Usuario?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var salvando by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
-    // 🔹 Buscar os dados do usuário no Firestore
+    // Nunca permitir edição de uma conta diferente da sessão atual.
     LaunchedEffect(userId) {
+        if (FirebaseAuth.getInstance().currentUser?.uid != userId) {
+            errorMessage = "Acesse sua conta para editar a identificação."
+            isLoading = false
+            return@LaunchedEffect
+        }
         try {
             val document = FirebaseFirestore.getInstance().collection("usuarios").document(userId).get().await()
             if (document.exists()) {
@@ -60,20 +71,24 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
             var cpf by remember { mutableStateOf(user.cpf ?: "") }
             var rg by remember { mutableStateOf(user.rg ?: "") }
             var nascimento by remember { mutableStateOf(user.nascimento ?: "") }
-            var genero by remember { mutableStateOf(user.genero ?: "Masculino") }
-            var tipoSanguineo by remember { mutableStateOf(user.tipoSanguineo ?: "O+") }
+            var genero by remember { mutableStateOf(user.genero) }
+            var tipoSanguineo by remember { mutableStateOf(user.tipoSanguineo) }
             var telefone by remember { mutableStateOf(user.telefone ?: "") }
             var email by remember { mutableStateOf(user.email ?: "") }
             var endereco by remember { mutableStateOf(user.endereco ?: "") }
-            var estado by remember { mutableStateOf(user.estado ?: "SP") }
+            var estado by remember { mutableStateOf(user.estado) }
             var cid by remember { mutableStateOf(user.cid ?: "") }
-            var naturalidade by remember { mutableStateOf(user.naturalidade ?: "") }
+            var naturalidade by remember { mutableStateOf(user.naturalidade) }
+            var responsavel by remember { mutableStateOf(user.responsavelLegal) }
+            var emergencia by remember { mutableStateOf(user.contatoEmergencia) }
+            var comunicacao by remember { mutableStateOf(user.preferenciaComunicacao) }
+            var observacoes by remember { mutableStateOf(user.observacoesApoio) }
 
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("Editar Carteirinha", fontSize = 20.sp, color = Color.White) },
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+                        title = { Text("Minha identificação", fontSize = 20.sp, color = Color.White, fontWeight = FontWeight.Bold) },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF123B62))
                     )
                 }
             ) { paddingValues ->
@@ -85,12 +100,32 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = screenWidth * 0.05f)
+                            .padding(horizontal = 16.dp)
                             .verticalScroll(scrollState),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Spacer(modifier = Modifier.height(16.dp))
-
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F1F7))
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                Text("Edite suas informações",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = Color(0xFF103855),
+                                    fontWeight = FontWeight.ExtraBold)
+                                Spacer(Modifier.height(5.dp))
+                                Text("Os campos de apoio são opcionais. Seus dados não são uma CIPTEA oficial.",
+                                    color = Color(0xFF3B5C71),
+                                    style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                        Spacer(Modifier.height(14.dp))
+                        Text("Identificação", color = Color(0xFF123B62),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.fillMaxWidth())
                         CustomTextField("Nome", nome) { nome = it }
                         CustomTextField("CPF", cpf) { cpf = it }
                         CustomTextField("RG", rg) { rg = it }
@@ -104,6 +139,29 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
                         CustomTextField("CID", cid) { cid = it }
                         CustomTextField("Naturalidade", naturalidade) { naturalidade = it }
 
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Rede de apoio (opcional)", color = Color(0xFF123B62),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
+                        CustomTextField("Nome do responsável ou pessoa de referência", responsavel) {
+                            responsavel = it.take(100)
+                        }
+                        CustomTextField("Telefone de emergência", emergencia) {
+                            emergencia = it.take(30)
+                        }
+                        CustomTextField("Como prefere se comunicar", comunicacao) {
+                            comunicacao = it.take(160)
+                        }
+                        CustomTextField("Observações de apoio (se desejar)", observacoes) {
+                            observacoes = it.take(280)
+                        }
+                        Text("Compartilhe apenas o necessário. A fotografia é alterada na tela da carteirinha.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF48677B),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp))
+                        errorMessage?.let {
+                            Text(it, color = MaterialTheme.colorScheme.error)
+                        }
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // 🔹 Botões de ação
@@ -122,6 +180,17 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
                             Button(
                                 onClick = {
                                     coroutineScope.launch {
+                                        if (nome.isBlank()) {
+                                            errorMessage = "Informe o nome para salvar."
+                                            return@launch
+                                        }
+                                        if (FirebaseAuth.getInstance().currentUser?.uid != userId) {
+                                            errorMessage = "Sessão inválida. Faça login novamente."
+                                            return@launch
+                                        }
+                                        if (salvando) return@launch
+                                        salvando = true
+                                        errorMessage = null
                                         try {
                                             val updatedData = mapOf(
                                                 "nome" to nome,
@@ -135,7 +204,11 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
                                                 "endereco" to endereco,
                                                 "estado" to estado,
                                                 "cid" to cid,
-                                                "naturalidade" to naturalidade
+                                                "naturalidade" to naturalidade,
+                                                "responsavelLegal" to responsavel.trim(),
+                                                "contatoEmergencia" to emergencia.trim(),
+                                                "preferenciaComunicacao" to comunicacao.trim(),
+                                                "observacoesApoio" to observacoes.trim()
                                             )
 
                                             FirebaseFirestore.getInstance().collection("usuarios").document(userId)
@@ -146,14 +219,17 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
                                                 popUpTo("editarCarteirinha/{usuarioId}") { inclusive = true }
                                             }
                                         } catch (e: Exception) {
-                                            errorMessage = "Erro ao salvar alterações: ${e.message}"
+                                            errorMessage = "Não foi possível salvar as informações. Verifique sua conexão."
+                                        } finally {
+                                            salvando = false
                                         }
                                     }
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                enabled = !salvando
                             ) {
-                                Text("Salvar", color = Color.White)
+                                Text(if (salvando) "Salvando..." else "Salvar", color = Color.White)
                             }
                         }
 
