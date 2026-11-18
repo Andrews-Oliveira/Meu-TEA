@@ -34,7 +34,6 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
     var salvando by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
     // Nunca permitir edição de uma conta diferente da sessão atual.
     LaunchedEffect(userId) {
@@ -86,9 +85,15 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
             var observacoes by remember { mutableStateOf(user.observacoesApoio) }
 
             Scaffold(
+                containerColor = Color(0xFFF0F6FA),
                 topBar = {
                     TopAppBar(
-                        title = { Text("Minha identificação", fontSize = 20.sp, color = Color.White, fontWeight = FontWeight.Bold) },
+                        title = { Text("Editar identificação", fontSize = 20.sp, color = Color.White, fontWeight = FontWeight.Bold) },
+                        navigationIcon = {
+                            TextButton(onClick = { navController.popBackStack() }) {
+                                Text("Voltar", color = Color.White, fontWeight = FontWeight.Bold)
+                            }
+                        },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF123B62))
                     )
                 }
@@ -96,70 +101,99 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.TopCenter
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp)
-                            .verticalScroll(scrollState),
+                            .fillMaxSize().widthIn(max = 650.dp)
+                            .verticalScroll(scrollState)
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Spacer(modifier = Modifier.height(16.dp))
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F1F7))
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF153E64))
                         ) {
                             Column(Modifier.padding(16.dp)) {
-                                Text("Edite suas informações",
+                                Text("Edite seus dados",
                                     style = MaterialTheme.typography.titleLarge,
-                                    color = Color(0xFF103855),
+                                    color = Color.White,
                                     fontWeight = FontWeight.ExtraBold)
                                 Spacer(Modifier.height(5.dp))
-                                Text("Os campos de apoio são opcionais. Seus dados não são uma CIPTEA oficial.",
-                                    color = Color(0xFF3B5C71),
+                                Text("Escolha as informações que deseja registrar. " +
+                                        "Este cartão é pessoal e não substitui a CIPTEA oficial.",
+                                    color = Color(0xFFD9EFFA),
                                     style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                         Spacer(Modifier.height(14.dp))
-                        Text("Identificação", color = Color(0xFF123B62),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.fillMaxWidth())
-                        CustomTextField("Nome", nome) { nome = it }
-                        CustomTextField("CPF", cpf) { cpf = it }
-                        CustomTextField("RG", rg) { rg = it }
-                        CustomTextField("Nascimento", nascimento) { nascimento = it }
-                        CustomTextField("Gênero", genero) { genero = it }
-                        CustomTextField("Tipo Sanguíneo", tipoSanguineo) { tipoSanguineo = it }
-                        CustomTextField("Telefone", telefone) { telefone = it }
-                        CustomTextField("E-mail", email) { email = it }
-                        CustomTextField("Endereço", endereco) { endereco = it }
-                        CustomTextField("Estado", estado) { estado = it }
-                        CustomTextField("CID", cid) { cid = it }
-                        CustomTextField("Naturalidade", naturalidade) { naturalidade = it }
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Column(
+                                Modifier.padding(15.dp),
+                                verticalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                Text("Identificação e contato",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = Color(0xFF123B62),
+                                    fontWeight = FontWeight.ExtraBold)
+                                CustomTextField("Nome completo", nome) { nome = it }
+                                CustomTextField("CPF", cpf) { cpf = it }
+                                CustomTextField("RG", rg) { rg = it }
+                                CustomTextField("Nascimento", nascimento) { nascimento = it }
+                                CustomTextField("Gênero", genero) { genero = it }
+                                CustomTextField("Tipo sanguíneo", tipoSanguineo) { tipoSanguineo = it }
+                                CustomTextField("Telefone", telefone) { telefone = it }
+                                CustomTextField("E-mail", email) { email = it }
+                                CustomTextField("Endereço", endereco) { endereco = it }
+                                CustomTextField("Estado", estado) { estado = it }
+                                CustomTextField("CID", cid) { cid = it }
+                                CustomTextField("Naturalidade", naturalidade) { naturalidade = it }
+                            }
+                        }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Rede de apoio (opcional)", color = Color(0xFF123B62),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
-                        CustomTextField("Nome do responsável ou pessoa de referência", responsavel) {
-                            responsavel = it.take(100)
+                        Spacer(Modifier.height(14.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Column(
+                                Modifier.padding(15.dp),
+                                verticalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                Text("Rede de apoio (opcional)",
+                                    color = Color(0xFF123B62),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.ExtraBold)
+                                Text(
+                                    "Compartilhe apenas o necessário. A foto é alterada no cartão.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF48677B)
+                                )
+                                CustomTextField("Pessoa de referência", responsavel) {
+                                    responsavel = it.take(100)
+                                }
+                                CustomTextField("Contato de emergência", emergencia) {
+                                    emergencia = it.take(30)
+                                }
+                                CustomTextField("Como prefere se comunicar", comunicacao) {
+                                    comunicacao = it.take(160)
+                                }
+                                CustomTextField("Observações de apoio", observacoes) {
+                                    observacoes = it.take(280)
+                                }
+                            }
                         }
-                        CustomTextField("Telefone de emergência", emergencia) {
-                            emergencia = it.take(30)
-                        }
-                        CustomTextField("Como prefere se comunicar", comunicacao) {
-                            comunicacao = it.take(160)
-                        }
-                        CustomTextField("Observações de apoio (se desejar)", observacoes) {
-                            observacoes = it.take(280)
-                        }
-                        Text("Compartilhe apenas o necessário. A fotografia é alterada na tela da carteirinha.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF48677B),
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp))
+                        Spacer(Modifier.height(15.dp))
                         errorMessage?.let {
                             Text(it, color = MaterialTheme.colorScheme.error)
                         }
@@ -172,8 +206,12 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
                         ) {
                             Button(
                                 onClick = { navController.popBackStack() },
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                                modifier = Modifier.weight(1f)
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFE0EDF4),
+                                    contentColor = Color(0xFF123B62)
+                                ),
+                                shape = RoundedCornerShape(15.dp),
+                                modifier = Modifier.weight(1f).heightIn(min = 54.dp)
                             ) {
                                 Text("Cancelar")
                             }
@@ -226,8 +264,9 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
                                         }
                                     }
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF087E83)),
+                                shape = RoundedCornerShape(15.dp),
+                                modifier = Modifier.weight(1f).heightIn(min = 54.dp),
                                 enabled = !salvando
                             ) {
                                 Text(if (salvando) "Salvando..." else "Salvar", color = Color.White)
@@ -242,25 +281,30 @@ fun CarteirinhaEditScreen(navController: NavController, userId: String) {
     }
 }
 
-// 🔹 Função reutilizável para os campos de entrada
+// Campos do editor com alto contraste, preenchimento consistente e suporte a texto longo.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTextField(label: String, value: String, onValueChange: (String) -> Unit) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, color = Color.Black) },
-        textStyle = TextStyle(color = Color.Black),
+        label = { Text(label) },
+        textStyle = TextStyle(color = Color(0xFF163C5B)),
+        shape = RoundedCornerShape(13.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.Gray,
-            unfocusedBorderColor = Color.LightGray,
-            cursorColor = Color.Black
+            focusedBorderColor = Color(0xFF087E83),
+            unfocusedBorderColor = Color(0xFFADC8D9),
+            cursorColor = Color(0xFF087E83),
+            focusedContainerColor = Color(0xFFFAFDFF),
+            unfocusedContainerColor = Color(0xFFFAFDFF),
+            focusedTextColor = Color(0xFF163C5B),
+            unfocusedTextColor = Color(0xFF163C5B),
+            focusedLabelColor = Color(0xFF087E83),
+            unfocusedLabelColor = Color(0xFF47687D)
         ),
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
+        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+        minLines = 1,
+        maxLines = if (label.contains("Observações") || label.contains("comunicar")) 4 else 2
     )
-
-
 }
