@@ -76,20 +76,24 @@ private val periodos = listOf("Manhã", "Tarde", "Noite")
 private fun imagemDaRotina(titulo: String): Int {
     val value = titulo.lowercase(Locale.ROOT)
     return when {
-        "café" in value || "almo" in value || "lanche" in value || "jantar" in value ->
-            R.drawable.tea_pic_comer
-        "higiene" in value || "banho" in value || "dente" in value ->
-            R.drawable.tea_pic_banheiro
-        "acordar" in value || "dormir" in value || "descanso" in value ->
-            R.drawable.tea_pic_cansaco
-        "pausa" in value || "tranquilo" in value ->
-            R.drawable.tea_pic_pausa
-        "atividade" in value || "brincar" in value ->
-            R.drawable.tea_pic_feliz
-        else -> R.drawable.tea_pic_escolher
+        "acordar" in value || "levantar" in value -> R.drawable.tea_routine_acordar
+        "higiene" in value || "banho" in value || "dente" in value ||
+            "lavar" in value || "escovar" in value -> R.drawable.tea_routine_higiene
+        "café" in value || "lanche" in value -> R.drawable.tea_routine_cafe
+        "almo" in value || "jantar" in value || "refei" in value ||
+            "comer" in value -> R.drawable.tea_routine_almoco
+        "organizar" in value || "planej" in value || "agenda" in value ||
+            "preparar" in value -> R.drawable.tea_routine_planejar
+        "dormir" in value || "sono" in value -> R.drawable.tea_routine_dormir
+        "pausa" in value || "tranquilo" in value || "descans" in value ->
+            R.drawable.tea_routine_pausa
+        "estud" in value || "leitura" in value || "escola" in value ->
+            R.drawable.tea_routine_estudo
+        "atividade" in value || "brincar" in value || "jogo" in value ->
+            R.drawable.tea_routine_brincar
+        else -> R.drawable.tea_routine_planejar
     }
 }
-
 
 private val sugestoes = listOf(
     AtividadeDiaria(titulo = "Acordar com calma", horario = "07:00", periodo = "Manhã"),
@@ -155,11 +159,13 @@ fun RotinasScreen(navController: NavHostController) {
     }
 
     val filtradas = atividades.filter { it.periodo == periodo }
+        .sortedWith(compareBy<AtividadeDiaria> { it.horario }.thenBy { it.titulo })
     val concluidas = filtradas.count { it.concluidaEm == diaAtual }
     val proporcao = if (filtradas.isEmpty()) 0f else concluidas.toFloat() / filtradas.size
 
     Box(Modifier.fillMaxSize()) {
-        TeaWallpaper(temaVisual = temaVisual, modifier = Modifier.fillMaxSize(), tint = 0.04f)
+        TeaWallpaper(temaVisual = temaVisual, modifier = Modifier.fillMaxSize(), tint = 0.12f)
+        Box(Modifier.fillMaxSize().background(Color(0x66EAF6FF)))
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
@@ -179,7 +185,9 @@ fun RotinasScreen(navController: NavHostController) {
         ) { padding ->
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 92.dp),
+                contentPadding = PaddingValues(
+                    start = 14.dp, end = 14.dp, top = 16.dp, bottom = 40.dp
+                ),
                 verticalArrangement = Arrangement.spacedBy(13.dp)
             ) {
                 item {
@@ -190,7 +198,7 @@ fun RotinasScreen(navController: NavHostController) {
                             fontWeight = FontWeight.ExtraBold)
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "Escolha, adapte ou remova cada etapa. A rotina acompanha suas necessidades.",
+                            "Planeje manhã, tarde e noite com atividades claras e adaptáveis.",
                             style = MaterialTheme.typography.bodyLarge,
                             color = Color.White
                         )
@@ -198,7 +206,7 @@ fun RotinasScreen(navController: NavHostController) {
                 }
                 item {
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xDA0A7AB1)),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFA103E6C)),
                         shape = RoundedCornerShape(25.dp),
                         border = BorderStroke(1.5.dp, Color.White),
                         modifier = Modifier.fillMaxWidth()
@@ -222,9 +230,9 @@ fun RotinasScreen(navController: NavHostController) {
                                             fontWeight = FontWeight.Bold)
                                     },
                                     colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
-                                        containerColor = Color.Transparent,
+                                        containerColor = Color(0xFF174F7A),
                                         labelColor = Color.White,
-                                        selectedContainerColor = Color(0xFFF0FAFF),
+                                        selectedContainerColor = Color(0xFFFFFFFF),
                                         selectedLabelColor = TeaPalette.ink
                                     ),
                                     border = BorderStroke(1.dp,
@@ -269,7 +277,7 @@ fun RotinasScreen(navController: NavHostController) {
                             }
                         }
                         if (filtradas.isNotEmpty() && concluidas == filtradas.size) {
-                            Text("Você concluiu as etapas de hoje. Muito bem!",
+                            Text("Etapas concluídas! Você pode ajustar sua rotina quando quiser.",
                                 modifier = Modifier.padding(top = 10.dp),
                                 color = TeaPalette.ink,
                                 fontWeight = FontWeight.Bold)
@@ -361,22 +369,22 @@ fun RotinasScreen(navController: NavHostController) {
                         modifier = Modifier.fillMaxWidth().animateContentSize()
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(10.dp),
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(
-                                modifier = Modifier.size(76.dp)
-                                    .clip(RoundedCornerShape(17.dp))
-                                    .background(Color(0xFFA9E9EC)),
+                                modifier = Modifier.size(86.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(Color(0xFFD4F1F5)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
                                     painter = painterResource(imagemDaRotina(atividade.titulo)),
                                     contentDescription = null,
-                                    modifier = Modifier.size(70.dp)
+                                    modifier = Modifier.size(82.dp)
                                 )
                             }
-                            Spacer(Modifier.size(10.dp))
+                            Spacer(Modifier.size(13.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(
                                     atividade.titulo,
@@ -384,10 +392,11 @@ fun RotinasScreen(navController: NavHostController) {
                                     color = TeaPalette.ink,
                                     style = MaterialTheme.typography.titleMedium,
                                     textDecoration = if (marcada)
-                                        TextDecoration.LineThrough else TextDecoration.None
+                                        TextDecoration.LineThrough else TextDecoration.None,
+                                    maxLines = 3
                                 )
                                 Spacer(Modifier.height(5.dp))
-                                Text("◷ " + atividade.horario,
+                                Text("Horário: " + atividade.horario,
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = Color(0xFF135B9A),
                                     fontWeight = FontWeight.Bold)
