@@ -1,6 +1,7 @@
 package com.example.meutea.menu.comunicacao
 
 import android.Manifest
+import android.graphics.Bitmap
 import android.content.pm.PackageManager
 import android.speech.tts.TextToSpeech
 import android.speech.tts.Voice
@@ -48,6 +49,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +57,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -72,6 +76,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Locale
@@ -139,6 +145,8 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
     val uid = FirebaseAuth.getInstance().currentUser?.uid
     val context = LocalContext.current
     val temaVisual = rememberTeaTheme()
+    val fotosCartoes = remember(context, uid) { uid?.let { FotosCartao(context, it) } }
+    var revisaoFotos by remember { mutableIntStateOf(0) }
     val prefs = remember(context) { context.getSharedPreferences("meutea_fala", 0) }
     var customizados by remember(uid) { mutableStateOf(emptyList<ComunicacaoCard>()) }
     var categoria by remember { mutableStateOf("Tudo") }
@@ -440,8 +448,23 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
                                 modifier = Modifier.fillMaxWidth().padding(9.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
+                                // Fotos personalizadas são carregadas fora da thread da UI.
+                                val foto by produceState<Bitmap?>(
+                                    initialValue = null, item.id, revisaoFotos, fotosCartoes
+                                ) {
+                                    value = withContext(Dispatchers.IO) {
+                                        fotosCartoes?.lerSalva(item.id)
+                                    }
+                                }
                                 val picture = faceDrawable(item.id)
-                                if (picture != null) {
+                                if (foto != null) {
+                                    Image(
+                                        bitmap = foto!!.asImageBitmap(),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Fit,
+                                        modifier = Modifier.fillMaxWidth().height(109.dp)
+                                    )
+                                } else if (picture != null) {
                                     Image(
                                         painterResource(picture),
                                         contentDescription = null,
@@ -644,66 +667,39 @@ fun ComunicacaoV2Screen(navController: NavHostController) {
     }
 
     val editor = edicao
-    if (criar || editor != null) {
-        var texto by remember(editor?.id, criar) { mutableStateOf(editor?.texto ?: "") }
-        var grupo by remember(editor?.id, criar) { mutableStateOf(editor?.categoria ?: "Necessidades") }
-        var salvando by remember { mutableStateOf(false) }
-        AlertDialog(
-            onDismissRequest = { if (!salvando) { criar = false; edicao = null } },
-            title = { Text(if (editor == null) "Criar cartão" else "Editar meu cartão") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = texto,
-                        onValueChange = { texto = it.take(100) },
-                        label = { Text("O que a voz deve dizer?") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Text("Categoria")
-                    categorias.drop(1).forEach { opcao ->
-                        FilterChip(
-                            selected = grupo == opcao,
-                            onClick = { grupo = opcao },
-                            label = { Text(opcao) }
-                        )
-                    }
-                }
+    val currentUid = uid
+    val storage = fotosCartoes
+    if ((criar || editor != null) && currentUid != null && storage != null) {
+        EditorCartaoDialog(
+            atual = editor,
+            uid = currentUid,
+            fotos = storage,
+            onClose = {
+                criar = false
+                edicao = null
             },
-            confirmButton = {
-                Button(
-                    enabled = texto.isNotBlank() && !salvando && uid != null,
-                    onClick = {
-                        val safeUid = uid ?: return@Button
-                        salvando = true
-                        val id = editor?.id ?: UUID.randomUUID().toString()
-                        FirebaseFirestore.getInstance().collection("usuarios").document(safeUid)
-                            .collection("comunicacao").document(id)
-                            .set(ComunicacaoCard(id, texto.trim(), grupo, "◉"))
-                            .addOnSuccessListener { criar = false; edicao = null; aviso = null }
-                            .addOnFailureListener { aviso = "Não foi possível salvar seu cartão." }
-                            .addOnCompleteListener { salvando = false }
-                    }
-                ) { Text("Salvar") }
+            onSaved = {
+                revisaoFotos++
+                aviso = "Cartão salvo. Toque na imagem para ouvir sua mensagem."
+                criar = false
+                edicao = null
             },
-            dismissButton = {
-                Row {
-                    if (editor != null) {
-                        TextButton(onClick = {
-                            val safeUid = uid ?: return@TextButton
-                            FirebaseFirestore.getInstance().collection("usuarios").document(safeUid)
-                                .collection("comunicacao").document(editor.id)
-                                .delete()
-                                .addOnSuccessListener {
-                                    // Cartão removido: apaga também sua voz privada neste aparelho.
-                                    audiosPessoais?.apagar(editor.id)
-                                    revisaoAudio++
-                                    edicao = null
-                                }
-                                .addOnFailureListener { aviso = "Não foi possível excluir o cartão." }
-                        }) { Text("Excluir") }
+            onDelete = { item ->
+                FirebaseFirestore.getInstance().collection("usuarios").document(currentUid)
+                    .collection("comunicacao").document(item.id)
+                    .delete()
+                    .addOnSuccessListener {
+                        audiosPessoais?.apagar(item.id)
+                        storage.remover(item.id)
+                        revisaoAudio++
+                        revisaoFotos++
+                        aviso = "Cartão e foto removidos do aparelho."
+                        criar = false
+                        edicao = null
                     }
-                    TextButton(onClick = { criar = false; edicao = null }) { Text("Cancelar") }
-                }
+                    .addOnFailureListener {
+                        aviso = "Não foi possível excluir o cartão. Verifique a conexão."
+                    }
             }
         )
     }
