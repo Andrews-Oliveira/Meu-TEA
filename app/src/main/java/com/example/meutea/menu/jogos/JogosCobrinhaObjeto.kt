@@ -1,272 +1,326 @@
 package com.example.meutea.menu.jogos
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.consume
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.meutea.ui.TeaGlassPanel
-import com.example.meutea.ui.TeaPalette
+import com.example.meutea.R
 import kotlinx.coroutines.delay
+import kotlin.math.abs
 import kotlin.random.Random
 
-private const val CAMPO = 11
-
-private fun novaComida(corpo: List<Int>, random: Random = Random.Default): Int =
-    (0 until CAMPO * CAMPO).filterNot { it in corpo }.randomOrNull(random) ?: -1
-
-private fun proximoIndice(posicao: Int, direcao: String): Int {
-    val x = posicao % CAMPO
-    val y = posicao / CAMPO
-    return when (direcao) {
-        "cima" -> if (y == 0) -1 else posicao - CAMPO
-        "baixo" -> if (y == CAMPO - 1) -1 else posicao + CAMPO
-        "esquerda" -> if (x == 0) -1 else posicao - 1
-        "direita" -> if (x == CAMPO - 1) -1 else posicao + 1
-        else -> -1
+private const val SIDE=11
+internal fun direcaoPermitida(atual:String,nova:String):Boolean {
+    val opposite=when(atual){
+        "cima"->"baixo";"baixo"->"cima";"esquerda"->"direita";else->"esquerda"
     }
+    return nova!=opposite
 }
 
-internal fun direcaoPermitida(atual: String, nova: String): Boolean =
-    nova != when (atual) {
-        "cima" -> "baixo"
-        "baixo" -> "cima"
-        "direita" -> "esquerda"
-        else -> "direita"
+private fun snakeNext(index:Int,direction:String,wrap:Boolean):Int {
+    val x=index%SIDE;val y=index/SIDE
+    val (dx,dy)=when(direction){
+        "cima"->0 to -1;"baixo"->0 to 1;"esquerda"->-1 to 0;else->1 to 0
     }
+    var nx=x+dx;var ny=y+dy
+    if(wrap){ nx=(nx+SIDE)%SIDE;ny=(ny+SIDE)%SIDE }
+    else if(nx !in 0 until SIDE||ny !in 0 until SIDE)return -1
+    return ny*SIDE+nx
+}
+private fun foodFor(body:List<Int>):Int {
+    return (0 until SIDE*SIDE).filterNot{it in body}.randomOrNull()?:-1
+}
 
-@Composable
-internal fun JogoCobrinha(onBack: () -> Unit) {
-    var corpo by remember { mutableStateOf(listOf(60, 59, 58)) }
-    var alimento by remember { mutableIntStateOf(25) }
-    var direcao by remember { mutableStateOf("direita") }
-    var jogando by remember { mutableStateOf(false) }
-    var terminou by remember { mutableStateOf(false) }
-    var pontos by remember { mutableIntStateOf(0) }
-    var ritmo by remember { mutableIntStateOf(460) }
+@Composable internal fun JogoCobrinha(onBack:()->Unit) {
+    var modo by remember{mutableStateOf("Tranquilo")}
+    var velocidade by remember{mutableStateOf("Calmo")}
+    var body by remember{mutableStateOf(listOf(60,59,58))}
+    var direction by remember{mutableStateOf("direita")}
+    var food by remember{mutableIntStateOf(22)}
+    var score by remember{mutableIntStateOf(0)}
+    var best by remember{mutableIntStateOf(0)}
+    var playing by remember{mutableStateOf(false)}
+    var ended by remember{mutableStateOf(false)}
+    var rodada by remember{mutableIntStateOf(0)}
 
-    LaunchedEffect(jogando, corpo, direcao, ritmo) {
-        if (!jogando || terminou) return@LaunchedEffect
-        delay(ritmo.toLong())
-        val novo = proximoIndice(corpo.first(), direcao)
-        val comeu = novo == alimento
-        val colisao = novo < 0 || novo in if (comeu) corpo else corpo.dropLast(1)
-        if (colisao) {
-            jogando = false
-            terminou = true
-        } else {
-            val novoCorpo = listOf(novo) + if (comeu) corpo else corpo.dropLast(1)
-            corpo = novoCorpo
-            if (comeu) {
-                pontos++
-                alimento = novaComida(novoCorpo)
-                if (alimento < 0) {
-                    jogando = false
-                    terminou = true
+    fun reset(){
+        body=listOf(60,59,58);direction="direita";food=22;score=0
+        playing=false;ended=false;rodada++
+    }
+    fun turn(to:String){
+        if(direcaoPermitida(direction,to))direction=to
+    }
+    val delayMs=when(velocidade){"Calmo"->760L;"Normal"->530L;else->340L}
+    LaunchedEffect(playing,velocidade,modo,rodada) {
+        while(playing&&!ended){
+            delay(delayMs)
+            val next=snakeNext(body.first(),direction,modo=="Tranquilo")
+            val eating=next==food
+            if(next<0||(next in if(eating)body else body.dropLast(1))){
+                if(modo=="Clássico") {
+                    ended=true;playing=false
+                }
+                // No modo tranquilo, é possível escolher outra direção sem perder.
+                continue
+            }
+            val moved=listOf(next)+(if(eating)body else body.dropLast(1))
+            body=moved
+            if(eating){
+                score++
+                if(score>best)best=score
+                food=foodFor(body)
+                if(food<0){ended=true;playing=false}
+            }
+        }
+    }
+    TelaJogo("Cobrinha",onBack) {
+        GameHeadline("Caça às frutas","Escolha seu ritmo. Use as setas ou deslize na grade.")
+        GamePanel {
+            Text("Modo de jogo",fontWeight=FontWeight.Bold,color=GameColors.ink)
+            Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                listOf("Tranquilo","Clássico").forEach{item->
+                    OutlinedButton(onClick={reset();modo=item},
+                        modifier=Modifier.weight(1f),shape=RoundedCornerShape(12.dp),
+                        colors=ButtonDefaults.outlinedButtonColors(
+                            containerColor=if(item==modo)GameColors.navy else Color.White,
+                            contentColor=if(item==modo)Color.White else GameColors.ink)
+                    ){Text(item)}
+                }
+            }
+            Text(if(modo=="Tranquilo")
+                "Sem derrota: atravesse as bordas e mude a direção quando precisar."
+                else "Desafio: bater nas bordas ou no corpo encerra a partida.",
+                color=GameColors.muted,fontSize=13.sp)
+            Row(horizontalArrangement=Arrangement.spacedBy(7.dp)) {
+                listOf("Calmo","Normal","Rápido").forEach{item->
+                    OutlinedButton(onClick={velocidade=item},
+                        modifier=Modifier.weight(1f),
+                        contentPadding=PaddingValues(horizontal=2.dp),
+                        shape=RoundedCornerShape(11.dp),
+                        colors=ButtonDefaults.outlinedButtonColors(
+                            containerColor=if(item==velocidade)GameColors.selected else Color.White,
+                            contentColor=GameColors.ink)
+                    ){Text(item,maxLines=1)}
+                }
+            }
+        }
+        GamePanel {
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
+                Text("🍎  Frutas: "+score,color=GameColors.ink,fontWeight=FontWeight.Bold)
+                Text("Recorde: "+best,color=GameColors.blue,fontWeight=FontWeight.Bold)
+            }
+            var gesture by remember{mutableStateOf(Offset.Zero)}
+            Canvas(
+                Modifier.fillMaxWidth().aspectRatio(1f)
+                    .clip(RoundedCornerShape(15.dp))
+                    .background(Color(0xFFE3F0F5))
+                    .pointerInput(modo) {
+                        detectDragGestures(
+                            onDragStart={gesture=Offset.Zero},
+                            onDragEnd={
+                                if(abs(gesture.x)>abs(gesture.y)&&abs(gesture.x)>18)
+                                    turn(if(gesture.x>0)"direita" else "esquerda")
+                                else if(abs(gesture.y)>18)
+                                    turn(if(gesture.y>0)"baixo" else "cima")
+                            },
+                            onDrag={change,drag->gesture+=drag;change.consume()}
+                        )
+                    }
+            ) {
+                val cell=size.width/SIDE
+                repeat(SIDE){y->repeat(SIDE){x->
+                    drawRoundRect(
+                        color=if((x+y)%2==0)Color(0xFFDAEEF0) else Color(0xFFCCE5E9),
+                        topLeft=Offset(x*cell,y*cell),
+                        size=Size(cell-1.5f,cell-1.5f),
+                        cornerRadius=CornerRadius(3f))
+                }}
+                if(food>=0){
+                    val center=Offset((food%SIDE+0.5f)*cell,(food/SIDE+0.5f)*cell)
+                    drawCircle(Color(0xFFE65454),radius=cell*0.33f,center=center)
+                    drawCircle(Color(0xFF7DCE83),radius=cell*0.12f,
+                        center=center+Offset(cell*0.08f,-cell*0.29f))
+                }
+                body.forEachIndexed{index,p->
+                    drawRoundRect(
+                        color=if(index==0)GameColors.navy else Color(0xFF168B71),
+                        topLeft=Offset((p%SIDE)*cell+1.5f,(p/SIDE)*cell+1.5f),
+                        size=Size(cell-3f,cell-3f),
+                        cornerRadius=CornerRadius(cell*0.25f)
+                    )
+                    if(index==0){
+                        drawCircle(Color.White,cell*0.065f,
+                            Offset((p%SIDE+0.32f)*cell,(p/SIDE+0.34f)*cell))
+                        drawCircle(Color.White,cell*0.065f,
+                            Offset((p%SIDE+0.68f)*cell,(p/SIDE+0.34f)*cell))
+                    }
+                }
+            }
+            if(ended) Text("Partida concluída. Você pode começar outra!",
+                color=GameColors.navy,fontWeight=FontWeight.Bold)
+            else Text(if(playing)"Em movimento • use as setas para mudar a direção"
+                else "Pausado • toque em Jogar para começar",
+                color=GameColors.muted)
+        }
+        Row(horizontalArrangement=Arrangement.spacedBy(9.dp)) {
+            GameAction(if(playing)"Pausar" else "Jogar",onClick={playing=!playing&&!ended},
+                enabled=!ended,modifier=Modifier.weight(1f))
+            GameAction("Reiniciar",onClick={reset()},secondary=true,modifier=Modifier.weight(1f))
+        }
+        GamePanel {
+            Text("Direção",fontWeight=FontWeight.Bold,color=GameColors.ink)
+            Column(Modifier.fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally,
+                verticalArrangement=Arrangement.spacedBy(6.dp)) {
+                GameAction("↑",onClick={turn("cima")},modifier=Modifier.width(86.dp))
+                Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                    GameAction("←",onClick={turn("esquerda")},modifier=Modifier.width(86.dp))
+                    GameAction("↓",onClick={turn("baixo")},modifier=Modifier.width(86.dp))
+                    GameAction("→",onClick={turn("direita")},modifier=Modifier.width(86.dp))
                 }
             }
         }
     }
+}
 
-    fun reiniciar() {
-        corpo = listOf(60,59,58)
-        alimento = 25
-        direcao = "direita"
-        jogando = false
-        terminou = false
-        pontos = 0
+private data class FinderItem(val title:String,val res:Int)
+private val objects=listOf(
+    FinderItem("Água",R.drawable.tea_pic_agua),
+    FinderItem("Comida",R.drawable.tea_pic_comer),
+    FinderItem("Banheiro",R.drawable.tea_pic_banheiro),
+    FinderItem("Ajuda",R.drawable.tea_pic_ajuda),
+    FinderItem("Alegria",R.drawable.tea_pic_feliz),
+    FinderItem("Tristeza",R.drawable.tea_pic_triste),
+    FinderItem("Cansaço",R.drawable.tea_pic_cansaco),
+    FinderItem("Conforto",R.drawable.tea_pic_dor),
+    FinderItem("Silêncio",R.drawable.tea_pic_silencio),
+    FinderItem("Pausa",R.drawable.tea_pic_pausa),
+    FinderItem("Sim",R.drawable.tea_pic_sim),
+    FinderItem("Não",R.drawable.tea_pic_nao),
+    FinderItem("Escolher",R.drawable.tea_pic_escolher),
+    FinderItem("Parar",R.drawable.tea_pic_parar),
+    FinderItem("Olá",R.drawable.tea_pic_oi),
+    FinderItem("Obrigado",R.drawable.tea_pic_obrigado),
+    FinderItem("Dúvida",R.drawable.tea_pic_desculpa),
+    FinderItem("Repetir",R.drawable.tea_pic_repetir),
+    FinderItem("Conversa",R.drawable.tea_action_chat),
+    FinderItem("Calendário",R.drawable.tea_action_calendar),
+    FinderItem("Jogos",R.drawable.tea_action_game),
+    FinderItem("Documento",R.drawable.tea_action_cert),
+    FinderItem("Identidade",R.drawable.tea_action_id),
+    FinderItem("Livros",R.drawable.tea_game_books),
+    FinderItem("Quebra-cabeça",R.drawable.tea_game_puzzle)
+)
+
+@Composable internal fun JogoProcureObjeto(onBack:()->Unit) {
+    var nivel by remember{mutableStateOf("Inicial")}
+    var total by remember{mutableIntStateOf(20)}
+    var round by remember{mutableIntStateOf(0)}
+    var found by remember(round,nivel){mutableStateOf(false)}
+    var tips by remember(round,nivel){mutableStateOf(false)}
+    var attempts by remember(round,nivel){mutableIntStateOf(0)}
+    var finished by remember{mutableStateOf(false)}
+    val n=when(nivel){"Inicial"->3;"Intermediário"->4;else->5}
+    val items=remember(round,nivel) {
+        val rnd=Random(round*147+objects.size)
+        objects.shuffled(rnd).take(n*n).shuffled(rnd)
     }
-
-    TelaJogo("Cobrinha", onBack) {
-        TeaGlassPanel(dark = true, modifier = Modifier.fillMaxWidth()) {
-            Text("Leve a cobrinha até a fruta", color = Color.White,
-                fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
-            Text("Controle pelo teclado de setas abaixo. Pause quando desejar.",
-                color = Color.White)
-        }
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xF1F1FAFF))
-        ) {
-            Column(Modifier.padding(12.dp)) {
-                Row(horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()) {
-                    Text("Frutas: $pontos", fontWeight = FontWeight.Bold, color = TeaPalette.ink)
-                    Text(if (terminou) "Fim desta partida" else
-                        if (jogando) "Em movimento" else "Pausado",
-                        color = TeaPalette.ocean, fontWeight = FontWeight.SemiBold)
+    val target=remember(round,nivel){items[Random(round*37+5).nextInt(items.size)]}
+    fun next() {
+        if(round+1>=total){finished=true}
+        else round++
+    }
+    TelaJogo("Encontre a figura",onBack) {
+        GameHeadline("Olhar atento","Procure uma figura na grade. Sem cronômetro e sem pressa.")
+        if(finished) {
+            GamePanel {
+                Text("Você explorou "+total+" desafios!",
+                    style=MaterialTheme.typography.headlineSmall,
+                    fontWeight=FontWeight.Bold,color=GameColors.navy)
+                Text("Pode continuar com outras figuras ou escolher outra atividade.",
+                    color=GameColors.muted)
+                GameAction("Jogar novamente",onClick={round=0;finished=false},
+                    modifier=Modifier.fillMaxWidth())
+            }
+        } else {
+            GamePanel {
+                GameLevelPicker(nivel){nivel=it;round=0;finished=false}
+                GameCountPicker(total){total=it;round=0;finished=false}
+            }
+            GamePanel {
+                GameProgress(round+if(found)1 else 0,total,"Desafios concluídos")
+                Text("Encontre: "+target.title,color=GameColors.navy,
+                    fontWeight=FontWeight.ExtraBold,
+                    style=MaterialTheme.typography.titleLarge)
+                Row(verticalAlignment=Alignment.CenterVertically) {
+                    Image(painterResource(target.res),
+                        contentDescription=target.title,modifier=Modifier.size(75.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text("Toque na imagem igual.",color=GameColors.ink)
+                        if(tips)Text("Dica: observe as cores e os detalhes do desenho.",
+                            color=GameColors.muted)
+                    }
                 }
-                Spacer(Modifier.height(10.dp))
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(CAMPO),
-                    modifier = Modifier.fillMaxWidth().height(302.dp),
-                    horizontalArrangement = Arrangement.spacedBy(1.dp),
-                    verticalArrangement = Arrangement.spacedBy(1.dp),
-                    userScrollEnabled = false
-                ) {
-                    itemsIndexed((0 until CAMPO * CAMPO).toList()) { _, index ->
-                        Box(
-                            modifier = Modifier.aspectRatio(1f)
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(when {
-                                    index == corpo.first() -> Color(0xFF078C68)
-                                    index in corpo -> Color(0xFF62CC93)
-                                    index == alimento -> Color(0xFFFFC05D)
-                                    else -> Color(0xFFD8EEF1)
-                                }),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (index == alimento) Text("●", color = Color(0xFFDA5754),
-                                fontSize = 17.sp)
-                            if (index == corpo.first()) Text("●", color = Color.White,
-                                fontSize = 15.sp)
+                Column(verticalArrangement=Arrangement.spacedBy(5.dp)) {
+                    repeat(n){y->
+                        Row(horizontalArrangement=Arrangement.spacedBy(5.dp)) {
+                            repeat(n){x->
+                                val item=items[y*n+x]
+                                Box(
+                                    Modifier.weight(1f).aspectRatio(1f)
+                                        .clip(RoundedCornerShape(13.dp))
+                                        .background(if(found&&item==target)
+                                            GameColors.success else GameColors.background)
+                                        .border(if(found&&item==target)2.dp else 1.dp,
+                                            if(found&&item==target)GameColors.teal else GameColors.border,
+                                            RoundedCornerShape(13.dp))
+                                        .clickable {
+                                            if(!found) {
+                                                attempts++
+                                                found=item==target
+                                            }
+                                        },
+                                    contentAlignment=Alignment.Center
+                                ) {
+                                    Image(painterResource(item.res),
+                                        contentDescription=item.title,
+                                        modifier=Modifier.fillMaxSize().padding(5.dp))
+                                }
+                            }
                         }
                     }
                 }
+                Text(if(found)"Encontrou! Muito bem. Vamos para outra figura?"
+                    else if(attempts>0)"Essa ainda não é a figura. Observe e tente novamente."
+                    else "As figuras têm nomes acessíveis para leitores de tela.",
+                    color=GameColors.ink)
+            }
+            Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                GameAction("Dica",onClick={tips=true},
+                    secondary=true,modifier=Modifier.weight(1f))
+                GameAction("Próximo",onClick={next()},enabled=found,
+                    modifier=Modifier.weight(1f))
             }
         }
-        if (terminou) {
-            TeaGlassPanel(modifier = Modifier.fillMaxWidth()) {
-                Text("Você coletou $pontos fruta(s). Quer jogar novamente?",
-                    color = TeaPalette.ink)
-            }
-        }
-        Column(horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Button(onClick = { if (direcaoPermitida(direcao,"cima")) direcao = "cima" },
-                modifier = Modifier.size(width = 74.dp, height = 52.dp)) { Text("↑", fontSize = 22.sp) }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = {
-                    if (direcaoPermitida(direcao, "esquerda")) direcao = "esquerda"
-                }, modifier = Modifier.size(width = 74.dp, height = 52.dp)) {
-                    Text("←", fontSize = 22.sp)
-                }
-                Button(onClick = { jogando = !jogando && !terminou },
-                    enabled = !terminou,
-                    modifier = Modifier.size(width = 96.dp, height = 52.dp)) {
-                    Text(if (jogando) "Pausa" else "Jogar")
-                }
-                Button(onClick = {
-                    if (direcaoPermitida(direcao, "direita")) direcao = "direita"
-                }, modifier = Modifier.size(width = 74.dp, height = 52.dp)) {
-                    Text("→", fontSize = 22.sp)
-                }
-            }
-            Button(onClick = { if (direcaoPermitida(direcao,"baixo")) direcao = "baixo" },
-                modifier = Modifier.size(width = 74.dp, height = 52.dp)) { Text("↓", fontSize = 22.sp) }
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            OutlinedButton(onClick = { ritmo = if (ritmo == 460) 650 else 460 }) {
-                Text(if (ritmo == 460) "Mais devagar" else "Ritmo normal")
-            }
-            OutlinedButton(onClick = { reiniciar() }) { Text("Recomeçar") }
-        }
-    }
-}
-
-private val elementos = listOf("⭐", "🍎", "🚲", "🐢", "🎈", "🌻", "🏀", "🐟",
-    "🍌", "🚗", "🦋", "🧸", "🍀", "🥕", "🪁", "🐝", "🎵", "🏡", "🍉", "🚀")
-private val alvos = listOf("🍎", "🦋", "🚗", "🌻", "🐢", "🎈", "🚀", "🧸")
-
-@Composable
-internal fun JogoProcureObjeto(onBack: () -> Unit) {
-    var rodada by remember { mutableIntStateOf(0) }
-    var encontrou by remember { mutableStateOf(false) }
-    var aviso by remember { mutableStateOf("Observe os desenhos e toque no objeto solicitado.") }
-    val alvo = alvos[rodada % alvos.size]
-    val sorteados = remember(rodada) {
-        elementos.shuffled(Random(rodada + 101)).take(19).let { chosen ->
-            (chosen.filterNot { it == alvo } + alvo).shuffled(Random(rodada + 992))
-        }
-    }
-
-    TelaJogo("Procure o objeto", onBack) {
-        TeaGlassPanel(dark = true, modifier = Modifier.fillMaxWidth()) {
-            Text("Encontre este objeto", color = Color.White,
-                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text(alvo, fontSize = 42.sp, modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center)
-            Text("Toque na figura igual. Sem cronômetro.",
-                color = Color.White, modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center)
-        }
-        Card(modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color(0xF4EBF8FF)),
-            shape = RoundedCornerShape(22.dp)) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                modifier = Modifier.fillMaxWidth().height(355.dp).padding(10.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                userScrollEnabled = false
-            ) {
-                itemsIndexed(sorteados) { _, item ->
-                    Box(
-                        modifier = Modifier.aspectRatio(1f)
-                            .clip(RoundedCornerShape(15.dp))
-                            .background(if (encontrou && item == alvo)
-                                Color(0xFFB1F4D8) else Color.White)
-                            .clickable {
-                                if (!encontrou) {
-                                    encontrou = item == alvo
-                                    aviso = if (encontrou) "Encontrou! Excelente observação."
-                                        else "Esse é outro objeto. Você pode procurar de novo."
-                                }
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(item, fontSize = 34.sp)
-                    }
-                }
-            }
-        }
-        TeaGlassPanel(modifier = Modifier.fillMaxWidth()) {
-            Text(aviso, style = MaterialTheme.typography.bodyLarge, color = TeaPalette.ink)
-        }
-        Button(onClick = {
-            rodada++
-            encontrou = false
-            aviso = "Observe os desenhos e toque no objeto solicitado."
-        }, modifier = Modifier.fillMaxWidth(),
-            enabled = encontrou) { Text("Próximo objeto") }
-        OutlinedButton(onClick = {
-            rodada++
-            encontrou = false
-            aviso = "Nova disposição dos objetos. Continue no seu ritmo."
-        }, modifier = Modifier.fillMaxWidth()) { Text("Trocar atividade") }
     }
 }
