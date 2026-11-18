@@ -88,7 +88,7 @@ fun LoginScreen(
             factory = { imageContext ->
                 ImageView(imageContext).apply {
                     scaleType = ImageView.ScaleType.CENTER_CROP
-                    setImageResource(R.drawable.tea_background_login)
+                    setImageResource(R.drawable.tea_login_abstract)
                     importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 }
             },
