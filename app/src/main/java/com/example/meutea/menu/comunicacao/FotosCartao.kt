@@ -138,6 +138,7 @@ internal class FotosCartao(context: Context, private val uid: String) {
                 error("Não foi possível salvar a foto.")
             }
             backup.delete()
+            Unit
         } finally {
             draft.delete()
         }
