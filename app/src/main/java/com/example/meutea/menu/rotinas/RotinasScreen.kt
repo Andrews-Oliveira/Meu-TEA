@@ -82,9 +82,9 @@ private fun imagemDaRotina(titulo: String): Int {
         "café" in value || "lanche" in value -> R.drawable.tea_routine_cafe
         "almo" in value || "jantar" in value || "refei" in value ||
             "comer" in value -> R.drawable.tea_routine_almoco
-        "organizar" in value || "planej" in value || "agenda" in value ||
-            "preparar" in value -> R.drawable.tea_routine_planejar
         "dormir" in value || "sono" in value -> R.drawable.tea_routine_dormir
+        "organizar" in value || "planej" in value || "agenda" in value ->
+            R.drawable.tea_routine_planejar
         "pausa" in value || "tranquilo" in value || "descans" in value ->
             R.drawable.tea_routine_pausa
         "estud" in value || "leitura" in value || "escola" in value ->
