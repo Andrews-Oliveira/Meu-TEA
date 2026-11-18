@@ -288,7 +288,7 @@ fun LoginScreen(
                     Color(0xA9003264), RoundedCornerShape(12.dp)
                 ).padding(10.dp)
             )
-            TextButton(onClick = onBackClicked) {
+            TextButton(onClick = { navController.navigate("welcomeScreen") }) {
                 Text("Conhecer o Meu TEA", color = Color.White)
             }
             Spacer(Modifier.height(24.dp))
