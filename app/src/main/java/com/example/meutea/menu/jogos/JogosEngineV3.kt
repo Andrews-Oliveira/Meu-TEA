@@ -213,7 +213,8 @@ internal fun gerarPortugues(nivel:String,total:Int,seed:Int):List<Pergunta> {
         }
     }
     plural.forEach{(a,b)->
-        bank+=textoQ("Qual é o plural de “$a”?",b,a,a+"s",
+        val erros=listOf(a,a+"s",a+"es",a+"is",a+"ões").distinct().filter{it!=b}
+        bank+=textoQ("Qual é o plural de “$a”?",b,erros[0],erros[1],
             "A forma plural de “$a” é “$b”.","Gramática",random)
     }
     val acentos=listOf("você","também","café","lápis","ônibus","fácil","médico",
@@ -240,9 +241,10 @@ internal fun gerarPortugues(nivel:String,total:Int,seed:Int):List<Pergunta> {
         Triple("As crianças brincam.","brincam","Verbo")
     )
     classes.forEach{(sentence,word,part)->
+        val errados=listOf("Substantivo","Verbo","Adjetivo","Advérbio","Pronome")
+            .filter{it!=part}.shuffled(random)
         bank+=textoQ("Na frase “$sentence”, a palavra “$word” é:",part,
-            listOf("Substantivo","Verbo","Adjetivo","Advérbio","Pronome").first{it!=part},
-            listOf("Adjetivo","Pronome","Substantivo","Verbo","Advérbio").first{it!=part},
+            errados[0],errados[1],
             "Em “$sentence”, “$word” exerce a função de $part.","Classes de palavras",random)
     }
     val contextos=listOf(
