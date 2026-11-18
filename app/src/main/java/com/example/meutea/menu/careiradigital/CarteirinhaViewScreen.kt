@@ -1,5 +1,6 @@
 package com.example.meutea.menu.careiradigital
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,6 +65,9 @@ fun CarteirinhaViewScreen(navController: NavController, userId: String?) {
     var erro by remember(userId) { mutableStateOf<String?>(null) }
     var aviso by remember { mutableStateOf<String?>(null) }
     var excluirDialog by remember { mutableStateOf(false) }
+    var mostrandoVerso by rememberSaveable(userId) { mutableStateOf(false) }
+    var mostrarDetalhes by rememberSaveable(userId) { mutableStateOf(false) }
+    var compartilharDialog by remember { mutableStateOf(false) }
     var excluindo by remember { mutableStateOf(false) }
     var fotoRevisao by remember(userId) { mutableIntStateOf(0) }
     var fotoCamera by remember { mutableStateOf<File?>(null) }
@@ -179,200 +184,108 @@ fun CarteirinhaViewScreen(navController: NavController, userId: String?) {
                 usuario != null -> {
                     val pessoa = usuario!!
                     Column(
-                        modifier = Modifier.fillMaxSize()
-                            .widthIn(max = 650.dp)
+                        modifier = Modifier.fillMaxSize().widthIn(max = 680.dp)
                             .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 15.dp, vertical = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                            .padding(horizontal = 16.dp, vertical = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(15.dp)
                     ) {
-                        Column {
-                            Text("Seu cartão pessoal",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.ExtraBold, color = ink)
-                            Spacer(Modifier.height(3.dp))
-                            Text("Um jeito organizado de mostrar suas informações e necessidades de apoio.",
-                                style = MaterialTheme.typography.bodyMedium, color = secondaryInk)
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            Text(
+                                "IDENTIFICAÇÃO PESSOAL",
+                                color = teal,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                            Text(
+                                "Meu cartão",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = navy
+                            )
+                            Text(
+                                "Um cartão de apoio com as suas informações, " +
+                                    "para mostrar apenas quando você quiser.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = secondaryInk
+                            )
+                        }
+                        ControleLadosCarteira(
+                            verso = mostrandoVerso,
+                            onLado = { mostrandoVerso = it }
+                        )
+                        CarteiraPremium(
+                            pessoa = pessoa,
+                            retrato = foto,
+                            codigoInterno = referenciaLocal,
+                            verso = mostrandoVerso
+                        )
+                        Text(
+                            if (mostrandoVerso) "Verso: informações de apoio e contatos."
+                            else "Frente: foto e dados essenciais. Toque em Verso para continuar.",
+                            modifier = Modifier.fillMaxWidth(),
+                            color = secondaryInk,
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+
+                        OutlinedButton(
+                            onClick = { mostrarDetalhes = !mostrarDetalhes },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                            shape = RoundedCornerShape(15.dp),
+                            border = BorderStroke(1.3.dp, stroke),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color.White,
+                                contentColor = navy
+                            )
+                        ) {
+                            Text(
+                                if (mostrarDetalhes) "Ocultar dados cadastrais"
+                                else "Ver documentos e endereço",
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        if (mostrarDetalhes) {
+                            DetalhesCadastraisPremium(pessoa)
                         }
 
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                            border = BorderStroke(1.2.dp, stroke),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
-                        ) {
-                            Column {
-                                Column(
-                                    Modifier.fillMaxWidth()
-                                        .background(Brush.horizontalGradient(listOf(
-                                            Color(0xFF12395F), Color(0xFF086B8D)
-                                        )))
-                                        .padding(17.dp),
-                                    verticalArrangement = Arrangement.spacedBy(7.dp)
-                                ) {
-                                    Text("MEU TEA  •  IDENTIFICAÇÃO PESSOAL",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = Color(0xFFB7EEF0),
-                                        fontWeight = FontWeight.ExtraBold)
-                                    Text("Cartão de apoio à comunicação",
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White)
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = Color(0xFFFDECD6)
-                                    ) {
-                                        Text(
-                                            "USO PESSOAL • NÃO OFICIAL",
-                                            color = Color(0xFF714217),
-                                            fontWeight = FontWeight.ExtraBold,
-                                            style = MaterialTheme.typography.labelMedium,
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                                        )
-                                    }
-                                }
-
-                                Column(Modifier.fillMaxWidth().padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(15.dp)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Box(
-                                            Modifier.size(width = 110.dp, height = 134.dp)
-                                                .clip(RoundedCornerShape(16.dp))
-                                                .background(Color(0xFFE1EDF3))
-                                                .border(1.dp, stroke, RoundedCornerShape(16.dp)),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            if (foto != null) {
-                                                Image(
-                                                    bitmap = foto!!.asImageBitmap(),
-                                                    contentDescription = "Fotografia da pessoa cadastrada",
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier = Modifier.fillMaxSize()
-                                                )
-                                            } else {
-                                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                    Text(
-                                                        pessoa.nome.trim().take(1).uppercase().ifBlank { "?" },
-                                                        color = teal, fontSize = 45.sp,
-                                                        fontWeight = FontWeight.ExtraBold
-                                                    )
-                                                    Text("Sem foto", color = secondaryInk,
-                                                        style = MaterialTheme.typography.labelSmall)
-                                                }
-                                            }
-                                        }
-                                        Column(Modifier.weight(1f),
-                                            verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                                            Text("NOME COMPLETO",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold, color = secondaryInk)
-                                            Text(pessoa.nome.ifBlank { "Não informado" },
-                                                style = MaterialTheme.typography.titleMedium,
-                                                color = ink, fontWeight = FontWeight.ExtraBold)
-                                            Text("REFERÊNCIA INTERNA",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold, color = secondaryInk)
-                                            Text(referenciaLocal, color = teal,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontWeight = FontWeight.Bold)
-                                            Text("Gerada pelo aplicativo; não é registro governamental.",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = secondaryInk)
-                                        }
-                                    }
-                                    HorizontalDivider(color = stroke)
-                                    TituloSecaoCarteira("Documentos e informações")
-                                    Row(Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                        DadoCarteira("CPF", formatCpf(pessoa.cpf),
-                                            Modifier.weight(1f))
-                                        DadoCarteira("RG", formatRg(pessoa.rg),
-                                            Modifier.weight(1f))
-                                    }
-                                    Row(Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                        DadoCarteira("Nascimento", formatDate(pessoa.nascimento),
-                                            Modifier.weight(1f))
-                                        DadoCarteira("UF", pessoa.estado,
-                                            Modifier.weight(1f))
-                                    }
-                                    Row(Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                        DadoCarteira("Sexo", pessoa.genero,
-                                            Modifier.weight(1f))
-                                        DadoCarteira("Tipo sanguíneo", pessoa.tipoSanguineo,
-                                            Modifier.weight(1f))
-                                    }
-                                    DadoCarteira("Naturalidade", pessoa.naturalidade)
-                                    DadoCarteira("CID informado", pessoa.cid)
-
-                                    HorizontalDivider(color = stroke)
-                                    TituloSecaoCarteira("Contato")
-                                    DadoCarteira("Telefone", formatPhone(pessoa.telefone))
-                                    DadoCarteira("Endereço", pessoa.endereco)
-                                    val contemApoio = pessoa.responsavelLegal.isNotBlank() ||
-                                        pessoa.contatoEmergencia.isNotBlank() ||
-                                        pessoa.preferenciaComunicacao.isNotBlank() ||
-                                        pessoa.observacoesApoio.isNotBlank()
-                                    HorizontalDivider(color = stroke)
-                                    TituloSecaoCarteira("Rede e necessidades de apoio")
-                                    if (contemApoio) {
-                                        if (pessoa.responsavelLegal.isNotBlank())
-                                            DadoCarteira("Pessoa de referência", pessoa.responsavelLegal)
-                                        if (pessoa.contatoEmergencia.isNotBlank())
-                                            DadoCarteira("Contato de emergência", pessoa.contatoEmergencia)
-                                        if (pessoa.preferenciaComunicacao.isNotBlank())
-                                            DadoCarteira("Comunicação preferida", pessoa.preferenciaComunicacao)
-                                        if (pessoa.observacoesApoio.isNotBlank())
-                                            DadoCarteira("Observações", pessoa.observacoesApoio)
-                                    } else {
-                                        Text("Você pode adicionar contatos e preferências no botão Editar.",
-                                            color = secondaryInk,
-                                            style = MaterialTheme.typography.bodyMedium)
-                                    }
-                                }
-                                Box(
-                                    Modifier.fillMaxWidth().background(Color(0xFFE4F2F7))
-                                        .padding(horizontal = 15.dp, vertical = 13.dp)
-                                ) {
-                                    Text(
-                                        "IDENTIFICAÇÃO PESSOAL DO MEU TEA — NÃO SUBSTITUI A CIPTEA OFICIAL.",
-                                        color = navy,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
-                            }
-                        }
-
-                        Card(
+                            shape = RoundedCornerShape(21.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.White),
                             border = BorderStroke(1.dp, stroke),
-                            shape = RoundedCornerShape(20.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
-                            Column(Modifier.fillMaxWidth().padding(15.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Text("Fotografia do cartão", color = ink,
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(11.dp)
+                            ) {
+                                Text(
+                                    if (foto == null) "Personalize com sua foto"
+                                    else "Atualizar fotografia",
+                                    color = navy,
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold)
-                                Text("Escolha uma foto sua ou tire uma nova. A foto fica somente neste aparelho.",
-                                    color = secondaryInk,
-                                    style = MaterialTheme.typography.bodySmall)
-                                Row(horizontalArrangement = Arrangement.spacedBy(9.dp),
-                                    modifier = Modifier.fillMaxWidth()) {
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                                Text(
+                                    "Escolha uma imagem ou use a câmera. " +
+                                        "A fotografia fica apenas neste aparelho.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = secondaryInk
+                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(9.dp)
+                                ) {
                                     OutlinedButton(
                                         onClick = { escolherFoto.launch("image/*") },
-                                        modifier = Modifier.weight(1f).heightIn(min = 50.dp),
+                                        modifier = Modifier.weight(1f).heightIn(min = 54.dp),
                                         shape = RoundedCornerShape(14.dp),
-                                        border = BorderStroke(1.5.dp, teal),
+                                        border = BorderStroke(1.4.dp, teal),
                                         colors = ButtonDefaults.outlinedButtonColors(
+                                            containerColor = Color.White,
                                             contentColor = teal
                                         )
                                     ) { Text("Galeria", fontWeight = FontWeight.Bold) }
@@ -395,7 +308,7 @@ fun CarteirinhaViewScreen(navController: NavController, userId: String?) {
                                                 aviso = "Não foi possível abrir a câmera."
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).heightIn(min = 50.dp),
+                                        modifier = Modifier.weight(1f).heightIn(min = 54.dp),
                                         shape = RoundedCornerShape(14.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = teal)
                                     ) { Text("Tirar foto", fontWeight = FontWeight.Bold) }
@@ -406,42 +319,108 @@ fun CarteirinhaViewScreen(navController: NavController, userId: String?) {
                                         FotoIdentificacao.excluir(context, id)
                                         fotoRevisao++
                                         aviso = "Foto removida."
-                                    }) { Text("Remover fotografia", color = Color(0xFF974657)) }
+                                    }) { Text("Remover foto", color = Color(0xFF9E4054)) }
                                 }
                             }
                         }
 
-                        aviso?.let {
-                            Text(it, color = ink, modifier = Modifier.fillMaxWidth()
-                                .background(Color(0xFFE2F3EF), RoundedCornerShape(14.dp))
-                                .padding(12.dp))
+                        aviso?.let { message ->
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = Color(0xFFE1F3EF),
+                                shape = RoundedCornerShape(14.dp)
+                            ) {
+                                Text(message, modifier = Modifier.padding(13.dp), color = navy)
+                            }
                         }
 
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Button(
-                                onClick = { navController.navigate("editarCarteirinha/" + userId) },
-                                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
-                                shape = RoundedCornerShape(15.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = navy)
-                            ) { Text("Editar dados", fontWeight = FontWeight.Bold) }
-                            OutlinedButton(
-                                onClick = { excluirDialog = true },
-                                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
-                                shape = RoundedCornerShape(15.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    contentColor = Color(0xFF9E3E50)
-                                ),
-                                border = BorderStroke(1.4.dp, Color(0xFF9E3E50))
-                            ) { Text("Excluir cartão", fontWeight = FontWeight.Bold) }
+                        Button(
+                            onClick = { navController.navigate("editarCarteirinha/" + userId) },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = navy)
+                        ) {
+                            Text("Editar meus dados", fontWeight = FontWeight.ExtraBold,
+                                style = MaterialTheme.typography.titleMedium)
                         }
-                        Text("Cartão informativo do aplicativo, sem valor de documento público.",
-                            color = secondaryInk, textAlign = TextAlign.Center,
+                        OutlinedButton(
+                            onClick = { compartilharDialog = true },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.5.dp, teal),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = teal,
+                                containerColor = Color.White
+                            )
+                        ) {
+                            Text("Compartilhar resumo de apoio",
+                                fontWeight = FontWeight.Bold)
+                        }
+                        TextButton(
+                            onClick = { excluirDialog = true },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        ) {
+                            Text("Excluir minha identificação", color = Color(0xFFA33F4F),
+                                fontWeight = FontWeight.Bold)
+                        }
+                        Text(
+                            "O Meu TEA não emite a CIPTEA. Para solicitar a carteira oficial, " +
+                                "procure o órgão competente do seu estado.",
+                            color = secondaryInk,
+                            textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp))
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 26.dp)
+                        )
                     }
                 }
             }
         }
+    }
+
+    if (compartilharDialog && usuario != null) {
+        val resumo = resumoSeguroCarteira(usuario!!)
+        AlertDialog(
+            onDismissRequest = { compartilharDialog = false },
+            title = { Text("Compartilhar resumo de apoio?") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Confira exatamente o que será compartilhado. " +
+                        "CPF, RG, CID, endereço e fotografia NÃO serão incluídos.",
+                        color = navy)
+                    Text(
+                        resumo,
+                        modifier = Modifier.fillMaxWidth()
+                            .background(Color(0xFFEAF3F8), RoundedCornerShape(12.dp))
+                            .padding(12.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = ink
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    try {
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, resumo)
+                        }
+                        context.startActivity(
+                            Intent.createChooser(intent, "Compartilhar resumo do Meu TEA")
+                        )
+                    } catch (e: Exception) {
+                        aviso = "Não foi possível abrir o compartilhamento."
+                    }
+                    compartilharDialog = false
+                }, colors = ButtonDefaults.buttonColors(containerColor = teal)) {
+                    Text("Compartilhar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { compartilharDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     if (excluirDialog) {
