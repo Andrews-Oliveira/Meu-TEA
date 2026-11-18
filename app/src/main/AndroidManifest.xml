@@ -23,6 +23,17 @@
         android:theme="@style/Theme.MeuTEA"
         tools:targetApi="31">
 
+        <!-- Câmera externa recebe apenas acesso temporário à foto de captura. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/tea_camera_paths" />
+        </provider>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
