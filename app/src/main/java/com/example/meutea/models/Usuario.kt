@@ -13,5 +13,10 @@ data class Usuario(
     val naturalidade: String = "",
     val cid: String = "",
     val genero: String = "",
-    val estado: String = "" // ✅ Estado adicionado
+    val estado: String = "",
+    // Informações opcionais de apoio para identificação pessoal — não oficial.
+    val responsavelLegal: String = "",
+    val contatoEmergencia: String = "",
+    val preferenciaComunicacao: String = "",
+    val observacoesApoio: String = ""
 )
