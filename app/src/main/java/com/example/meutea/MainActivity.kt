@@ -4,6 +4,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
@@ -48,8 +59,11 @@ class MainActivity : ComponentActivity() {
 fun SetupNavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = "welcomeScreen"
+        startDestination = "sessionGate"
     ) {
+        composable(route = "sessionGate") {
+            SessaoInicial(navController)
+        }
         composable(route = "welcomeScreen") {
             WelcomeScreen(navController = navController)
         }
@@ -140,6 +154,42 @@ fun SetupNavGraph(navController: NavHostController) {
         }
     }
 }
+
+/**
+ * FirebaseAuth no Android mantém a sessão entre inicializações.
+ * Ao abrir o app, aguarda o estado autenticado e encaminha à home sem pedir senha novamente.
+ * O listener é liberado quando sai deste destino; logout continua explícito.
+ */
+@Composable
+private fun SessaoInicial(navController: NavHostController) {
+    val auth = remember { FirebaseAuth.getInstance() }
+    var resolvido by remember { mutableStateOf(false) }
+    var usuarioId by remember { mutableStateOf<String?>(null) }
+
+    DisposableEffect(auth) {
+        val listener = FirebaseAuth.AuthStateListener { firebase ->
+            usuarioId = firebase.currentUser?.uid
+            resolvido = true
+        }
+        auth.addAuthStateListener(listener)
+        onDispose { auth.removeAuthStateListener(listener) }
+    }
+
+    LaunchedEffect(resolvido, usuarioId) {
+        if (resolvido) {
+            val destino = usuarioId?.let { "menuPrincipalScreen/$it" } ?: "loginScreen"
+            navController.navigate(destino) {
+                popUpTo("sessionGate") { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
+
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MainActivityPreview() {
