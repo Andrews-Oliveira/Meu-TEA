@@ -94,7 +94,7 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
     LaunchedEffect(usuarioId) {
         if (auth.currentUser?.uid != usuarioId) {
             navController.navigate("loginScreen") {
-                popUpTo("welcomeScreen") { inclusive = true }
+                popUpTo(navController.graph.id) { inclusive = false }
                 launchSingleTop = true
             }
         }
@@ -133,7 +133,7 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                         TextButton(onClick = {
                             auth.signOut()
                             navController.navigate("loginScreen") {
-                                popUpTo("welcomeScreen") { inclusive = true }
+                                popUpTo(navController.graph.id) { inclusive = false }
                                 launchSingleTop = true
                             }
                         }) { Text("Sair", color = Color.White, fontWeight = FontWeight.SemiBold) }

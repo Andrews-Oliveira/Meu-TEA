@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   pull_request:
-    branches: [main, fix/fluxos-essenciais-meu-tea-20261117, feat/meu-tea-v2-modulos-20261117, feat/meu-tea-temas-perfil-20261117, feat/redesign-visual-integrado-20261117, feat/voz-pessoal-cartoes-20261117]
+    branches: [main, fix/fluxos-essenciais-meu-tea-20261117, feat/meu-tea-v2-modulos-20261117, feat/meu-tea-temas-perfil-20261117, feat/redesign-visual-integrado-20261117, feat/voz-pessoal-cartoes-20261117, feat/cartoes-foto-camera-20261118]
   push:
     branches: [main]
 

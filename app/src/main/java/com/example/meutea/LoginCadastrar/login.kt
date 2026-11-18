@@ -5,25 +5,56 @@ import android.util.Log
 import android.widget.Toast
 import android.widget.ImageView
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.meutea.R
@@ -33,8 +64,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 /**
- * A marca Meu TEA é texto da interface, não parte da imagem.
- * O login usa fundo neutro e NÃO mostra personagem de qualquer tema.
+ * Tela de login sem personagem, com marca acessível e formulário legível.
+ * A persistência da conta é gerenciada pelo FirebaseAuth e pela SessionGate.
  */
 @Composable
 fun LoginScreen(
@@ -46,119 +77,220 @@ fun LoginScreen(
     val context = LocalContext.current
     var email by rememberSaveable { mutableStateOf("") }
     var senha by rememberSaveable { mutableStateOf("") }
+    var mostrarSenha by rememberSaveable { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var resetPassword by remember { mutableStateOf(false) }
+    var erro by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // ImageView recebe XML shape, VectorDrawable e imagens PNG/JPG/WebP.
-        // painterResource NÃO aceita <shape> e causava crash ao abrir o login.
+    Box(Modifier.fillMaxSize()) {
         AndroidView(
             factory = { imageContext ->
                 ImageView(imageContext).apply {
                     scaleType = ImageView.ScaleType.CENTER_CROP
-                    setImageResource(R.drawable.tea_background_login)
-                    contentDescription = null
+                    setImageResource(R.drawable.tea_login_abstract)
                     importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 }
             },
             modifier = Modifier.fillMaxSize()
         )
+        Box(
+            Modifier.fillMaxSize().background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xC9003264),
+                        Color(0x4A005B99),
+                        Color(0x06054D87),
+                        Color(0x72023666)
+                    )
+                )
+            )
+        )
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().imePadding()
                 .verticalScroll(rememberScrollState())
-                .imePadding()
-                .padding(horizontal = 22.dp, vertical = 20.dp),
+                .padding(horizontal = 19.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(46.dp))
-            Text(
-                "Meu TEA",
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF073F74)
-            )
-            Text(
-                "Comunicar, organizar e acolher.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color(0xFF234D65),
-                textAlign = TextAlign.Center
-            )
-            Spacer(Modifier.height(54.dp))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(26.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            Spacer(Modifier.height(24.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                Box(
+                    modifier = Modifier.size(60.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(Brush.linearGradient(
+                            listOf(Color(0xFF00C6C4), Color(0xFF1972C7))
+                        ))
+                        .border(1.5.dp, Color.White, RoundedCornerShape(18.dp)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        "Que bom ter você aqui!",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1C414C)
-                    )
-                    Text(
-                        "Acesse sua conta para continuar.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF38545C)
-                    )
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = { Text("Seu e-mail") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = senha,
-                        onValueChange = { senha = it },
-                        label = { Text("Sua senha") },
-                        visualTransformation = PasswordVisualTransformation(),
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    TextButton(
-                        onClick = { resetPassword = true },
-                        modifier = Modifier.align(Alignment.End)
-                    ) { Text("Esqueci minha senha") }
-                    Button(
-                        onClick = {
-                            if (email.isBlank() || senha.isBlank()) {
-                                Toast.makeText(context, "Preencha e-mail e senha.", Toast.LENGTH_SHORT).show()
-                            } else {
-                                coroutineScope.launch {
-                                    isLoading = true
-                                    try {
-                                        LoginWithFirebase(
-                                            email.trim(), senha, navController, context
-                                        )
-                                    } finally {
-                                        isLoading = false
-                                    }
-                                }
-                            }
-                        },
-                        enabled = !isLoading,
-                        modifier = Modifier.fillMaxWidth().height(54.dp),
-                        shape = RoundedCornerShape(15.dp)
-                    ) {
-                        Text(if (isLoading) "Entrando..." else "Entrar")
-                    }
-                    OutlinedButton(
-                        onClick = onCadastrarClicked,
-                        modifier = Modifier.fillMaxWidth().height(54.dp),
-                        shape = RoundedCornerShape(15.dp),
-                        enabled = !isLoading
-                    ) { Text("Criar minha conta") }
+                    Text("MT", color = Color.White, fontSize = 21.sp,
+                        fontWeight = FontWeight.ExtraBold)
+                }
+                Spacer(Modifier.size(13.dp))
+                Column {
+                    Text("Meu TEA",
+                        color = Color.White, fontSize = 30.sp,
+                        fontWeight = FontWeight.ExtraBold)
+                    Text("Comunicação • Rotina • Autonomia",
+                        color = Color.White, style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium)
                 }
             }
-            Spacer(Modifier.height(24.dp))
-            TextButton(onClick = onBackClicked) { Text("Voltar") }
+            Spacer(Modifier.height(52.dp))
+            Card(
+                shape = RoundedCornerShape(28.dp),
+                modifier = Modifier.fillMaxWidth(),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.4.dp, Color.White.copy(alpha = 0.9f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xF9F7FCFF))
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(13.dp)
+                ) {
+                    Box(
+                        Modifier.fillMaxWidth().height(7.dp)
+                            .background(Brush.horizontalGradient(listOf(
+                                Color(0xFF00B7C4), Color(0xFF217FCB), Color(0xFF9A84F2)
+                            )))
+                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(
+                            horizontal = 20.dp, vertical = 17.dp
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text("Bem-vindo de volta",
+                            color = Color(0xFF113761),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.ExtraBold)
+                        Text("Entre para continuar de onde parou.",
+                            color = Color(0xFF46617B),
+                            style = MaterialTheme.typography.bodyLarge)
+                        Spacer(Modifier.height(4.dp))
+                        Text("E-mail", color = Color(0xFF16375B),
+                            fontWeight = FontWeight.Bold)
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { email = it; erro = null },
+                            placeholder = { Text("seuemail@exemplo.com") },
+                            label = { Text("Seu e-mail") },
+                            leadingIcon = { Text("✉", fontSize = 22.sp) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(15.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color(0xFF0077AE),
+                                unfocusedBorderColor = Color(0xFF91B7CA),
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                                focusedTextColor = Color(0xFF113761),
+                                unfocusedTextColor = Color(0xFF113761)
+                            )
+                        )
+                        Text("Senha", color = Color(0xFF16375B),
+                            fontWeight = FontWeight.Bold)
+                        OutlinedTextField(
+                            value = senha,
+                            onValueChange = { senha = it; erro = null },
+                            label = { Text("Sua senha") },
+                            placeholder = { Text("Digite sua senha") },
+                            leadingIcon = { Text("●", color = Color(0xFF5481AD)) },
+                            trailingIcon = {
+                                TextButton(onClick = { mostrarSenha = !mostrarSenha }) {
+                                    Text(if (mostrarSenha) "Ocultar" else "Ver",
+                                        color = Color(0xFF006D9F))
+                                }
+                            },
+                            visualTransformation = if (mostrarSenha) VisualTransformation.None
+                                else PasswordVisualTransformation(),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(15.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color(0xFF0077AE),
+                                unfocusedBorderColor = Color(0xFF91B7CA),
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                                focusedTextColor = Color(0xFF113761),
+                                unfocusedTextColor = Color(0xFF113761)
+                            )
+                        )
+                        TextButton(
+                            onClick = { resetPassword = true },
+                            modifier = Modifier.align(Alignment.End)
+                        ) { Text("Esqueci minha senha", color = Color(0xFF006E9F)) }
+                        erro?.let { message ->
+                            Text(message, color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyMedium)
+                        }
+                        Button(
+                            onClick = {
+                                if (email.isBlank() || senha.isBlank()) {
+                                    erro = "Informe seu e-mail e sua senha."
+                                } else {
+                                    coroutineScope.launch {
+                                        isLoading = true
+                                        try {
+                                            LoginWithFirebase(
+                                                email.trim(), senha, navController, context
+                                            )
+                                        } finally { isLoading = false }
+                                    }
+                                }
+                            },
+                            enabled = !isLoading,
+                            modifier = Modifier.fillMaxWidth().height(55.dp),
+                            shape = RoundedCornerShape(17.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF006E91)
+                            )
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(22.dp),
+                                    color = Color.White, strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text("Entrar no Meu TEA",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        OutlinedButton(
+                            onClick = onCadastrarClicked,
+                            enabled = !isLoading,
+                            modifier = Modifier.fillMaxWidth().height(55.dp),
+                            shape = RoundedCornerShape(17.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color.White,
+                                contentColor = Color(0xFF0A5687)
+                            )
+                        ) {
+                            Text("Criar minha conta", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(18.dp))
+            Text(
+                "Ao entrar, sua sessão permanece ativa neste aparelho. Use Sair quando desejar.",
+                color = Color.White,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.background(
+                    Color(0xA9003264), RoundedCornerShape(12.dp)
+                ).padding(10.dp)
+            )
+            TextButton(onClick = { navController.navigate("welcomeScreen") }) {
+                Text("Conhecer o Meu TEA", color = Color.White)
+            }
             Spacer(Modifier.height(24.dp))
         }
         if (resetPassword) {
@@ -167,67 +299,48 @@ fun LoginScreen(
     }
 }
 
-suspend fun LoginWithFirebase(email: String, senha: String, navController: NavController, context: Context) {
+suspend fun LoginWithFirebase(
+    email: String, senha: String, navController: NavController, context: Context
+) {
+    val auth = FirebaseAuth.getInstance()
+    val user = try {
+        auth.signInWithEmailAndPassword(email, senha).await().user
+    } catch (e: Exception) {
+        Log.w("MeuTeaLogin", "Falha de autenticação", e)
+        Toast.makeText(context, "Não foi possível entrar. Confira e-mail, senha e conexão.",
+            Toast.LENGTH_LONG).show()
+        return
+    }
+    if (user == null) {
+        Toast.makeText(context, "Não foi possível autenticar sua conta.",
+            Toast.LENGTH_LONG).show()
+        return
+    }
+
+    // O usuário autenticado entra independentemente da conexão com Firestore.
+    // Isso evita exigir a senha novamente quando o cache está disponível.
+    navController.navigate("menuPrincipalScreen/${user.uid}") {
+        popUpTo("loginScreen") { inclusive = true }
+        launchSingleTop = true
+    }
+
+    // Reparação opcional de perfil, sem bloquear acesso ao próprio app.
     try {
-        val auth = FirebaseAuth.getInstance()
-        val db = FirebaseFirestore.getInstance()
-
-        // 🔹 Tenta autenticar o usuário
-        val user = try {
-            auth.signInWithEmailAndPassword(email, senha).await().user
-        } catch (e: Exception) {
-            Log.e("LoginDebug", "Erro ao autenticar: ${e.message}")
-            Toast.makeText(context, "Email ou senha incorretos!", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        if (user != null) {
-            Log.d("LoginDebug", "Usuário autenticado com sucesso.")
-
-            // 🔹 Verifica se o usuário já existe no Firestore
-            val userDocRef = db.collection("usuarios").document(user.uid)
-            val userDoc = userDocRef.get().await()
-
-            if (!userDoc.exists()) {
-                Log.e("LoginDebug", "Usuário não encontrado no Firestore, criando documento...")
-
-                // Criar documento do usuário no Firestore com carteira_digital como false
-                val novoUsuario = mapOf(
-                    "uid" to user.uid,
-                    "email" to user.email,
-                    "nome" to (user.displayName ?: ""),
-                    "carteira_digital" to false
-                )
-
-                db.collection("usuarios").document(user.uid).set(novoUsuario).await()
-                Log.d("LoginDebug", "Usuário salvo no Firestore.")
-            }
-
-            // 🔹 Verificar se o usuário já preencheu a carteira digital
-            val temCarteira = userDoc.getBoolean("carteira_digital") ?: false
-
-            // ✅ Se já tiver carteira digital, vai para `CarteirinhaViewScreen`
-            if (temCarteira) {
-                // Se o usuário tem uma conta, sempre vai para o Menu Principal primeiro
-                Log.d("LoginDebug", "Usuário autenticado. Redirecionando para MenuPrincipalScreen.")
-                navController.navigate("menuPrincipalScreen/${user.uid}") {
-                    popUpTo("loginScreen") { inclusive = true } // Remove a tela de login da pilha
-                }
-
-            } else {
-                // ❌ Se não tiver carteira digital, ele continua indo para `MenuPrincipalScreen`
-                Log.d("LoginDebug", "Usuário sem carteira, indo para MenuPrincipalScreen.")
-                navController.navigate("menuPrincipalScreen/${user.uid}") {
-                    popUpTo("loginScreen") { inclusive = true }
-                }
-            }
+        val userDocRef = FirebaseFirestore.getInstance().collection("usuarios").document(user.uid)
+        val doc = userDocRef.get().await()
+        if (!doc.exists()) {
+            userDocRef.set(mapOf(
+                "uid" to user.uid,
+                "email" to (user.email ?: ""),
+                "nome" to (user.displayName ?: ""),
+                "carteira_digital" to false,
+                "tema_visual" to "masculino"
+            )).await()
         }
     } catch (e: Exception) {
-        Toast.makeText(context, "Erro inesperado: ${e.message}", Toast.LENGTH_SHORT).show()
-        Log.e("LoginDebug", "Erro inesperado: ${e.message}")
+        Log.w("MeuTeaLogin", "Perfil não sincronizado (sessão continua autenticada)", e)
     }
 }
-
 
 
 @Preview(showBackground = true)

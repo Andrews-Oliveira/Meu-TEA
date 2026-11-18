@@ -1,14 +1,15 @@
 package com.example.meutea.menu.jogos
 
 import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.example.meutea.R
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Box
-import androidx.compose.ui.graphics.Color
-import com.example.meutea.ui.TeaWallpaper
-import com.example.meutea.ui.TeaPalette
-import com.example.meutea.ui.TeaGlassPanel
-import com.example.meutea.ui.rememberTeaTheme
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,15 +19,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -34,206 +35,181 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.meutea.R
+import com.example.meutea.ui.TeaGlassPanel
+import com.example.meutea.ui.TeaPalette
+import com.example.meutea.ui.TeaWallpaper
+import com.example.meutea.ui.rememberTeaTheme
 
-private data class Desafio(
-    val figura: Int,
-    val texto: String,
-    val resposta: String,
-    val opcoes: List<String>
+private data class JogoItem(
+    val id: String,
+    val titulo: String,
+    val descricao: String,
+    val icone: Int,
+    val cores: List<Color>
 )
 
-// Atividade lúdica: não diagnostica nem avalia desenvolvimento.
-private val desafios = listOf(
-    Desafio(R.drawable.tea_pic_feliz, "Observe a expressão", "Feliz", listOf("Feliz", "Triste", "Com medo")),
-    Desafio(R.drawable.tea_pic_triste, "Observe a expressão", "Triste", listOf("Feliz", "Triste", "Com raiva")),
-    Desafio(R.drawable.tea_medo, "Observe a expressão", "Com medo", listOf("Com medo", "Feliz", "Triste")),
-    Desafio(R.drawable.tea_raiva, "Observe a expressão", "Com raiva", listOf("Feliz", "Com medo", "Com raiva"))
+private val catalogo = listOf(
+    JogoItem("quebra", "Quebra-cabeça", "Reconstrua uma figura", R.drawable.tea_game_puzzle,
+        listOf(Color(0xFF188AC8), Color(0xFF35C0DB))),
+    JogoItem("palavras", "Caça-palavras", "Encontre palavras na grade", R.drawable.tea_game_words,
+        listOf(Color(0xFF13A992), Color(0xFF4BCEAD))),
+    JogoItem("cobra", "Cobrinha", "Mova e colete as frutas", R.drawable.tea_game_snake,
+        listOf(Color(0xFF559D49), Color(0xFF95CF5F))),
+    JogoItem("objetos", "Procure o objeto", "Localize o desenho solicitado", R.drawable.tea_game_search,
+        listOf(Color(0xFFDB8C22), Color(0xFFF0C35D))),
+    JogoItem("matematica", "Matemática", "Desafios com números", R.drawable.tea_game_math,
+        listOf(Color(0xFF8B6BDF), Color(0xFFC09BEE))),
+    JogoItem("portugues", "Português", "Leitura e palavras", R.drawable.tea_game_books,
+        listOf(Color(0xFFCA598E), Color(0xFFF09CB9))),
+    JogoItem("logica", "Lógica", "Padrões e sequências", R.drawable.tea_game_logic,
+        listOf(Color(0xFF387ACB), Color(0xFF56B8EF))),
+    JogoItem("emocoes", "Emoções", "Descubra expressões", R.drawable.tea_game_smile,
+        listOf(Color(0xFFCF8255), Color(0xFFF2B278))),
+    JogoItem("pausa", "Pausa tranquila", "Uma atividade sem pressa", R.drawable.tea_game_leaf,
+        listOf(Color(0xFF168D83), Color(0xFF5FC6A6)))
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JogosV2Screen(navController: NavHostController) {
-    var modo by remember { mutableStateOf("Emoções") }
-    var indice by remember(modo) { mutableIntStateOf(0) }
-    var escolha by remember(modo, indice) { mutableStateOf<String?>(null) }
-    var etapa by remember(modo) { mutableIntStateOf(0) }
-    val desafio = desafios[indice]
-    val temaVisual = rememberTeaTheme()
+    var game by rememberSaveable { mutableStateOf("") }
+    when (game) {
+        "quebra" -> JogoQuebraCabeca { game = "" }
+        "palavras" -> JogoCacaPalavras { game = "" }
+        "cobra" -> JogoCobrinha { game = "" }
+        "objetos" -> JogoProcureObjeto { game = "" }
+        "matematica" -> JogoPerguntas("Matemática", "matematica") { game = "" }
+        "portugues" -> JogoPerguntas("Português", "portugues") { game = "" }
+        "logica" -> JogoPerguntas("Lógica", "logica") { game = "" }
+        "emocoes" -> JogoEmocoes { game = "" }
+        "pausa" -> JogoPausa { game = "" }
+        else -> JogosCatalogo(onBack = { navController.popBackStack() }, onSelect = { game = it })
+    }
+}
 
+/**
+ * Um único invólucro visual para todos os jogos. Cada modo possui controles
+ * grandes, orientação curta, opção de voltar e nenhuma publicidade.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun TelaJogo(
+    titulo: String,
+    onBack: () -> Unit,
+    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
+) {
+    val theme = rememberTeaTheme()
     Box(Modifier.fillMaxSize()) {
-        TeaWallpaper(temaVisual = temaVisual, modifier = Modifier.fillMaxSize(), tint = 0.04f)
-    Scaffold(
-        containerColor = Color.Transparent,
-        topBar = {
-            TopAppBar(
-                title = { Text("Jogos tranquilos", color = Color.White, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    TextButton(onClick = { navController.popBackStack() }) {
-                        Text("‹ Voltar", color = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xDD0A396C)
+        TeaWallpaper(theme, modifier = Modifier.fillMaxSize(), tint = 0.12f)
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text(titulo, fontWeight = FontWeight.ExtraBold, color = Color.White) },
+                    navigationIcon = {
+                        TextButton(onClick = onBack) { Text("‹ Voltar", color = Color.White) }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xE009386D)
+                    )
                 )
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier.fillMaxSize().padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+                content = content
             )
         }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 90.dp, bottom = 28.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                TeaGlassPanel(dark = true, modifier = Modifier.fillMaxWidth()) {
-                    Text("Explorar sem pressa",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White)
-                    Text(
-                        "Aqui não há pontos nem penalidades. Você pode parar a qualquer momento.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White
-                    )
-                }
+    }
+}
+
+@Composable
+private fun JogosCatalogo(onBack: () -> Unit, onSelect: (String) -> Unit) {
+    val theme = rememberTeaTheme()
+    Box(Modifier.fillMaxSize()) {
+        TeaWallpaper(theme, modifier = Modifier.fillMaxSize(), tint = 0.12f)
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .background(Color(0xE009386D))
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(onClick = onBack) { Text("‹ Voltar", color = Color.White) }
+                Text("Jogos e descobertas",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold)
             }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    listOf("Emoções", "Pausa").forEach { tab ->
-                        FilterChip(selected = modo == tab, onClick = { modo = tab },
-                            label = { Text(tab) },
-                            colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
-                                containerColor = Color(0xE7F7FDFF),
-                                selectedContainerColor = Color(0xFF00A5B3),
-                                selectedLabelColor = Color.White,
-                                labelColor = TeaPalette.ink
-                            ))
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.spacedBy(11.dp),
+                verticalArrangement = Arrangement.spacedBy(11.dp),
+                contentPadding = PaddingValues(15.dp)
+            ) {
+                item(span = { GridItemSpan(2) }) {
+                    TeaGlassPanel(dark = true, modifier = Modifier.fillMaxWidth()) {
+                        Text("Escolha o que deseja explorar",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = Color.White, fontWeight = FontWeight.ExtraBold)
+                        Spacer(Modifier.height(5.dp))
+                        Text("Sem anúncios, sem pressão e com liberdade para parar.",
+                            color = Color.White, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
-            }
-            if (modo == "Emoções") {
-                item {
+                items(catalogo, key = { it.id }) { item ->
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(22.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xF4EAF8FF)
-                        )
+                        onClick = { onSelect(item.id) },
+                        shape = RoundedCornerShape(23.dp),
+                        border = BorderStroke(1.5.dp, Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xF2F6FCFF))
                     ) {
                         Column(
-                            modifier = Modifier.fillMaxWidth().padding(20.dp),
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Cartão " + (indice + 1) + " de " + desafios.size,
-                                style = MaterialTheme.typography.labelLarge)
+                            Box(
+                                Modifier.fillMaxWidth().height(92.dp)
+                                    .clip(RoundedCornerShape(17.dp))
+                                    .background(Brush.linearGradient(item.cores)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(painter = painterResource(item.icone),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(57.dp))
+                            }
                             Spacer(Modifier.height(12.dp))
-                            Image(
-                                painter = painterResource(desafio.figura),
-                                contentDescription = "Desenho de uma expressão facial",
-                                modifier = Modifier.size(190.dp)
-                            )
-                            Spacer(Modifier.height(14.dp))
-                            Text("Qual palavra combina com a expressão?",
-                                style = MaterialTheme.typography.titleLarge,
+                            Text(item.titulo,
+                                color = TeaPalette.ink, fontWeight = FontWeight.ExtraBold,
+                                style = MaterialTheme.typography.titleMedium,
                                 textAlign = TextAlign.Center)
+                            Text(item.descricao,
+                                color = Color(0xFF375775),
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(top = 5.dp))
                         }
                     }
-                }
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        desafio.opcoes.forEach { opcao ->
-                            OutlinedButton(
-                                onClick = { escolha = opcao },
-                                modifier = Modifier.fillMaxWidth().height(60.dp),
-                                border = BorderStroke(1.5.dp, Color.White),
-                                colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (escolha == opcao)
-                                        Color(0xFF00A5B3) else Color(0xF2F3FBFF),
-                                    contentColor = if (escolha == opcao)
-                                        Color.White else TeaPalette.ink
-                                )
-                            ) { Text(opcao) }
-                        }
-                    }
-                }
-                if (escolha != null) {
-                    item {
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color(0xF1E4F0FE)
-                            )
-                        ) {
-                            Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                                Text(
-                                    if (escolha == desafio.resposta)
-                                        "Essa é uma forma de reconhecer a expressão!"
-                                    else "Uma interpretação possível deste desenho é: " + desafio.resposta + ".",
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                Text(
-                                    "Pessoas podem expressar sentimentos de maneiras diferentes.",
-                                    modifier = Modifier.padding(top = 6.dp)
-                                )
-                            }
-                        }
-                    }
-                    item {
-                        Button(onClick = {
-                            indice = (indice + 1) % desafios.size
-                            escolha = null
-                        }, modifier = Modifier.fillMaxWidth()) {
-                            Text(if (indice == desafios.lastIndex) "Recomeçar" else "Próximo cartão")
-                        }
-                    }
-                }
-            } else {
-                item {
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                        shape = RoundedCornerShape(22.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(Modifier.fillMaxWidth().padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Pausa voluntária", style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(18.dp))
-                            val mensagens = listOf(
-                                "Encontre um lugar onde você se sinta confortável.",
-                                "Se for agradável, observe a respiração sem forçar.",
-                                "Você pode relaxar as mãos e os ombros.",
-                                "Pronto. Volte quando quiser."
-                            )
-                            Text(mensagens[etapa], textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.headlineSmall)
-                            Spacer(Modifier.height(22.dp))
-                            Button(onClick = { etapa = (etapa + 1) % mensagens.size }) {
-                                Text(if (etapa == mensagens.lastIndex) "Recomeçar" else "Próximo passo")
-                            }
-                        }
-                    }
-                }
-                item {
-                    Text(
-                        "Se essa atividade causar desconforto, encerre-a. Não substitui acompanhamento profissional.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
             }
         }
     }
-    }
-
 }
