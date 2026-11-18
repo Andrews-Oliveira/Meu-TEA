@@ -3,6 +3,7 @@ package com.example.meutea.menu
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -120,7 +123,8 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
     }
 
     Box(Modifier.fillMaxSize()) {
-        TeaWallpaper(temaVisual = temaVisual, modifier = Modifier.fillMaxSize())
+        TeaWallpaper(temaVisual = temaVisual, modifier = Modifier.fillMaxSize(), tint = 0.13f)
+        Box(Modifier.fillMaxSize().background(Color(0x2BEAF7FF)))
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
@@ -139,38 +143,82 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                         }) { Text("Sair", color = Color.White, fontWeight = FontWeight.SemiBold) }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xD90A396C)
+                        containerColor = Color(0xF014365B)
                     )
                 )
             }
         ) { padding ->
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(horizontal = 17.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(13.dp)
+                contentPadding = PaddingValues(
+                    start = 16.dp, end = 16.dp, top = 18.dp, bottom = 32.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Deixa a ilustração respirar: nome não fica preso no topo do desenho.
-                item { Spacer(Modifier.height(128.dp)) }
                 item {
                     TeaGlassPanel(dark = true, modifier = Modifier.fillMaxWidth()) {
-                        Text("Olá, $firstName!",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.ExtraBold, color = Color.White)
-                        Spacer(Modifier.height(5.dp))
-                        Text("Seu jeito de se comunicar importa. Escolha o que deseja fazer.",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("BEM-VINDO AO MEU TEA",
+                                    color = Color(0xFFD3F9FC),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.height(6.dp))
+                                Text("Olá, $firstName!",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.ExtraBold, color = Color.White)
+                                Spacer(Modifier.height(6.dp))
+                                Text("Comunique-se, organize seu dia e explore atividades no seu ritmo.",
+                                    style = MaterialTheme.typography.bodyMedium, color = Color.White)
+                            }
+                            Spacer(Modifier.width(10.dp))
+                            Image(
+                                painter = painterResource(
+                                    if (temaVisual == "feminino") R.drawable.tea_routine_cafe
+                                    else R.drawable.tea_pic_feliz
+                                ),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.size(90.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .border(2.dp, Color.White, RoundedCornerShape(20.dp))
+                            )
+                        }
                     }
                 }
-                items(actions) { action ->
-                    HomeActionCard(action) { navController.navigate(action.destination) }
+                item {
+                    Text("O que você deseja fazer?",
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.background(
+                            Color(0xE013416B), RoundedCornerShape(13.dp)
+                        ).padding(horizontal = 13.dp, vertical = 9.dp))
+                }
+                item {
+                    HomeActionCard(actions[0]) {
+                        navController.navigate(actions[0].destination)
+                    }
+                }
+                item {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        HomeFeatureTile(actions[1], Modifier.weight(1f)) {
+                            navController.navigate(actions[1].destination)
+                        }
+                        HomeFeatureTile(actions[2], Modifier.weight(1f)) {
+                            navController.navigate(actions[2].destination)
+                        }
+                    }
                 }
                 item {
                     HomeActionCard(
                         HomeAction(
                             "Minha identificação",
-                            if (loadingCarteira) "Carregando identificação..."
-                            else "Cartão pessoal — não é documento oficial",
+                            if (loadingCarteira) "Carregando..."
+                            else "Seus dados de apoio • cartão não oficial",
                             R.drawable.tea_action_id,
                             listOf(Color(0xFF12CEC1), Color(0xFF087F98)), ""
                         )
@@ -180,9 +228,8 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                         carteiraError = null
                         firestore.collection("usuarios").document(usuarioId).get()
                             .addOnSuccessListener { doc ->
-                                val route = if (doc.getBoolean("carteira_digital") == true) {
-                                    "carteirinhaViewScreen/"
-                                } else "carteirinhaScreen/"
+                                val route = if (doc.getBoolean("carteira_digital") == true)
+                                    "carteirinhaViewScreen/" else "carteirinhaScreen/"
                                 navController.navigate(route + usuarioId)
                             }
                             .addOnFailureListener {
@@ -191,21 +238,26 @@ fun MenuPrincipalScreen(navController: NavController, usuarioId: String) {
                             .addOnCompleteListener { loadingCarteira = false }
                     }
                     carteiraError?.let {
-                        Text(it, color = Color.White, modifier = Modifier.padding(6.dp))
+                        Text(it, color = Color.White,
+                            modifier = Modifier.background(
+                                Color(0xD013416B), RoundedCornerShape(12.dp)
+                            ).padding(12.dp))
                     }
                 }
                 item {
-                    TeaGlassPanel(dark = true, modifier = Modifier.fillMaxWidth()) {
-                        Text("Aqui você é ouvido, respeitado e acolhido.",
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold,
-                            style = MaterialTheme.typography.bodyLarge)
-                        Text("Cada atividade pode ser adaptada ao seu tempo.",
-                            color = Color.White.copy(alpha = 0.9f),
-                            style = MaterialTheme.typography.bodyMedium)
+                    HomeActionCard(actions[3]) {
+                        navController.navigate(actions[3].destination)
                     }
                 }
-                item { Spacer(Modifier.height(20.dp)) }
+                item {
+                    Text("Toda pessoa merece ser ouvida e respeitada. " +
+                        "Personalize as atividades conforme suas preferências.",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.fillMaxWidth()
+                            .background(Color(0xD013416B), RoundedCornerShape(16.dp))
+                            .padding(14.dp))
+                }
             }
         }
     }
@@ -306,6 +358,45 @@ private fun HomeActionCard(action: HomeAction, onClick: () -> Unit) {
                     color = Color(0xFF305175))
             }
             Text("›", fontSize = 30.sp, color = TeaPalette.ocean)
+        }
+    }
+}
+
+@Composable
+private fun HomeFeatureTile(
+    action: HomeAction,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.height(177.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFAF4FAFF)),
+        shape = RoundedCornerShape(22.dp),
+        border = BorderStroke(1.5.dp, Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(13.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Box(
+                modifier = Modifier.size(56.dp)
+                    .clip(RoundedCornerShape(17.dp))
+                    .background(Brush.linearGradient(action.palette)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(painterResource(action.drawable), contentDescription = null,
+                    modifier = Modifier.size(34.dp))
+            }
+            Text(action.title, color = TeaPalette.ink,
+                fontWeight = FontWeight.ExtraBold,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 2)
+            Text(action.subtitle, color = Color(0xFF42617B),
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2)
         }
     }
 }
